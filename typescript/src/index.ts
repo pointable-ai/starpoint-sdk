@@ -28,7 +28,7 @@ export const initialize = (apiKey: string) => {
       return await composerClient.post<InsertResponse>("/documents", request);
     },
     update: async (request: UpdateRequest) => {
-      return await composerClient.put<UpdateResponse>("/documents", request);
+      return await composerClient.patch<UpdateResponse>("/documents", request);
     },
     delete: async (request: DeleteRequest) => {
       return await composerClient.delete<DeleteResponse>("/documents", {
