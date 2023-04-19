@@ -24,14 +24,14 @@ export const initialize = (apiKey: string) => {
   });
 
   return {
-    insert: async (request: InsertDocumentsRequest) => {
-      return await composerClient.post<InsertDocumentsResponse>(
-        "/documents",
-        request
-      );
+    insert: async (request: InsertRequest) => {
+      return await composerClient.post<InsertResponse>("/documents", request);
     },
-    query: async (request: QueryDocumentsRequest) => {
-      return await readerClient.post<QueryDocumentsResponse>("/query", request);
+    update: async (request: UpdateRequest) => {
+      return await composerClient.put<UpdateResponse>("/documents", request);
+    },
+    query: async (request: QueryRequest) => {
+      return await readerClient.post<QueryResponse>("/query", request);
     },
   };
 };
@@ -39,23 +39,39 @@ export const initialize = (apiKey: string) => {
 // INSERT TYPES
 interface InsertDocumentsDocument {
   embedding: number[];
-  metadata:
-    | {
-        [key: string]: string | number;
-      }
-    | undefined
-    | null;
+  metadata: Metadata;
 }
 
 interface InsertDocuments {
   documents: InsertDocumentsDocument[];
 }
 
-type InsertDocumentsRequest = ByWrapper<InsertDocuments>;
+export type InsertRequest = ByWrapper<InsertDocuments>;
 
-interface InsertDocumentsResponse {
+export interface InsertResponse {
   collection_id: string;
   documents: { id: string } & InsertDocumentsDocument;
+}
+
+// UPDATE TYPES
+interface UpdateDocument {
+  id: string;
+  metadata: Metadata;
+}
+
+export type UpdateRequest = ByWrapper<UpdateDocument>;
+
+export interface UpdateResponse {
+  collection_id: string;
+  documents: UpdateDocument[];
+}
+
+// DELETE TYPES
+export type DeleteRequest = ByWrapper<{ ids: string[] }>;
+
+export interface DeleteResponse {
+  collection_id: string;
+  document_ids: string[];
 }
 
 // QUERY TYPES
@@ -64,9 +80,9 @@ interface QueryDocuments {
   sql?: string | undefined | null;
 }
 
-type QueryDocumentsRequest = ByWrapper<QueryDocuments>;
+export type QueryRequest = ByWrapper<QueryDocuments>;
 
-interface QueryDocumentsResponse {
+export interface QueryResponse {
   collection_id: string;
   result_count: number;
   sql?: string | undefined | null;
@@ -89,3 +105,9 @@ interface ByCollectionId {
 type ByCollectionIdWrapper<T> = T & ByCollectionId;
 
 type ByWrapper<T> = ByCollectionNameWrapper<T> | ByCollectionIdWrapper<T>;
+
+type Metadata = Value | undefined | null;
+
+interface Value {
+  [key: string]: string | number;
+}
