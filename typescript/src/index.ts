@@ -30,6 +30,11 @@ export const initialize = (apiKey: string) => {
     update: async (request: UpdateRequest) => {
       return await composerClient.put<UpdateResponse>("/documents", request);
     },
+    delete: async (request: DeleteRequest) => {
+      return await composerClient.delete<DeleteResponse>("/documents", {
+        data: request,
+      });
+    },
     query: async (request: QueryRequest) => {
       return await readerClient.post<QueryResponse>("/query", request);
     },
