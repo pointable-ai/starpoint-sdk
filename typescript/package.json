@@ -1,7 +1,7 @@
 {
-  "name": "envelope-ai",
+  "name": "envelope-sdk",
   "author": "envelope.ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript API for envelope.ai",
   "source": "src/index.ts",
   "main": "dist/main.js",

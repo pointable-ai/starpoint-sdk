@@ -4,7 +4,7 @@ const COMPOSER_URL = "https://composer.envelope.ai/api/v1";
 const READER_URL = "https://reader.envelope.ai/api/v1";
 const API_KEY_HEADER_NAME = "x-envelope-key";
 
-export const initialize = (apiKey: string) => {
+const initialize = (apiKey: string) => {
   const composerClient = axios.create({
     baseURL: COMPOSER_URL,
     headers: {
@@ -41,6 +41,8 @@ export const initialize = (apiKey: string) => {
   };
 };
 
+export default initialize;
+
 // INSERT TYPES
 interface InsertDocumentsDocument {
   embedding: number[];
@@ -55,7 +57,7 @@ export type InsertRequest = ByWrapper<InsertDocuments>;
 
 export interface InsertResponse {
   collection_id: string;
-  documents: { id: string } & InsertDocumentsDocument;
+  documents: { id: string };
 }
 
 // UPDATE TYPES
@@ -64,11 +66,11 @@ interface UpdateDocument {
   metadata: Metadata;
 }
 
-export type UpdateRequest = ByWrapper<UpdateDocument>;
+export type UpdateRequest = ByWrapper<{ documents: UpdateDocument[] }>;
 
 export interface UpdateResponse {
   collection_id: string;
-  documents: UpdateDocument[];
+  documents: { id: string }[];
 }
 
 // DELETE TYPES
