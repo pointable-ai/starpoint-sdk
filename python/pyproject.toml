@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "envelope-ai"
+version = "0.0.6"
+authors = [
+  { name="envelope.ai", email="support@envelope.ai"},
+]
+description = "SDK for envelope DB"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "validators~=0.20",
+    "requests~=2.28",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/envelope-ai/wayfarer"
+"Bug Tracker" = "https://github.com/envelope-ai/wayfarer/issues"
