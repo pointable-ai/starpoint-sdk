@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import requests
@@ -15,8 +15,8 @@ READER_URL = "https://reader.envelope.ai"
 COMPOSER_URL = "https://composer.envelope.ai"
 
 
-def _build_header(api_key: str, additional_headers: Dict):
-    header = {API_HEADER_KEY: api_key}
+def _build_header(api_key: UUID, additional_headers: Dict[str, str]):
+    header = {API_HEADER_KEY: str(api_key)}
     # TODO: Check if there'll be header collision
     header.update(additional_headers)
     return header
@@ -24,8 +24,8 @@ def _build_header(api_key: str, additional_headers: Dict):
 
 def _set_and_validate_host(host: str):
     if not host:
-        raise ValueError(f"No host value provided. A host must be provided.")
-    elif not validators.url(host):
+        raise ValueError("No host value provided. A host must be provided.")
+    elif validators.url(host) is not True:  # type: ignore
         raise ValueError(f"Provided host {host} is not a valid url format.")
 
     # Make sure we don't have dangling backslashes in the url during url composition later
@@ -61,7 +61,7 @@ class Composer(object):
         documents: List[UUID],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -99,10 +99,10 @@ class Composer(object):
 
     def insert(
         self,
-        documents: List[Dict],
+        documents: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -144,10 +144,10 @@ class Composer(object):
 
     def update(
         self,
-        documents: List[Dict],
+        documents: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -204,7 +204,7 @@ class Reader(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -247,7 +247,7 @@ class Wayfarer(object):
 
     def __init__(
         self,
-        api_key: str,
+        api_key: UUID,
         reader_host: Optional[str] = None,
         composer_host: Optional[str] = None,
     ):
@@ -256,10 +256,10 @@ class Wayfarer(object):
 
     def delete(
         self,
-        documents: List[Dict],
+        documents: List[UUID],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         return self.composer.delete(
             documents=documents,
             collection_id=collection_id,
@@ -268,10 +268,10 @@ class Wayfarer(object):
 
     def insert(
         self,
-        documents: List[Dict],
+        documents: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         return self.composer.insert(
             documents=documents,
             collection_id=collection_id,
@@ -284,7 +284,7 @@ class Wayfarer(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         return self.reader.query(
             sql=sql,
             collection_id=collection_id,
@@ -294,10 +294,10 @@ class Wayfarer(object):
 
     def update(
         self,
-        documents: List[Dict],
+        documents: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         return self.composer.update(
             documents=documents,
             collection_id=collection_id,
