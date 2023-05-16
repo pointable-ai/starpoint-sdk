@@ -1,42 +1,162 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import isURL from "validator/lib/isURL";
+
+const DOCUMENTS_PATH = "/api/v1/documents";
+const QUERY_PATH = "/api/v1/query";
 
 const COMPOSER_URL = "https://composer.envelope.ai/api/v1";
-const READER_URL = "https://reader.envelope.ai/api/v1";
+const READER_URL = "http://localhost:9000/";
 const API_KEY_HEADER_NAME = "x-envelope-key";
 
-const initialize = (apiKey: string) => {
+const _setAndValidateHost = (host: string) => {
+  if (!host) {
+    throw new Error("No host value provided. A host must be provided.");
+  } else if (
+    !isURL(host, {
+      require_tld: false,
+      require_protocol: false,
+      require_host: false,
+      require_port: false,
+      require_valid_protocol: false,
+      allow_underscores: false,
+      allow_trailing_dot: false,
+      allow_protocol_relative_urls: false,
+      allow_fragments: false,
+      allow_query_components: true,
+      disallow_auth: false,
+      validate_length: false,
+    })
+  ) {
+    throw new Error(`Provided host ${host} is not a valid URL format.`);
+  }
+  const trimmed_hostname = host.replace(/\/$/, ""); // Remove trailing slashes from the host URL
+
+  return trimmed_hostname;
+};
+
+const initialize = (
+  apiKey: string,
+  composerHostURL?: string,
+  readerHostURL?: string
+) => {
+  axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
+
   const composerClient = axios.create({
-    baseURL: COMPOSER_URL,
-    headers: {
-      common: {
-        [API_KEY_HEADER_NAME]: apiKey,
-      },
-    },
+    baseURL: composerHostURL
+      ? _setAndValidateHost(composerHostURL)
+      : COMPOSER_URL,
   });
 
   const readerClient = axios.create({
-    baseURL: READER_URL,
-    headers: {
-      common: {
-        [API_KEY_HEADER_NAME]: apiKey,
-      },
-    },
+    baseURL: readerHostURL ? _setAndValidateHost(readerHostURL) : READER_URL,
   });
 
   return {
     insert: async (request: InsertRequest) => {
-      return await composerClient.post<InsertResponse>("/documents", request);
+      try {
+        const response = await composerClient.post<InsertResponse>(
+          DOCUMENTS_PATH,
+          request
+        );
+        const result: APIResult<InsertResponse> = {
+          data: response.data, 
+          error: null
+        }
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.error(
+            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
+          );
+          const result: APIResult<InsertResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
     },
     update: async (request: UpdateRequest) => {
-      return await composerClient.patch<UpdateResponse>("/documents", request);
+      try {
+        const response = await composerClient.patch<UpdateResponse>(
+          DOCUMENTS_PATH,
+          request
+        );
+        const result: APIResult<UpdateResponse> = {
+          data: response.data, 
+          error: null
+        }
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.error(
+            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
+          );
+          const result: APIResult<UpdateResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
     },
     delete: async (request: DeleteRequest) => {
-      return await composerClient.delete<DeleteResponse>("/documents", {
-        data: request,
-      });
+      try {
+        const response = await composerClient.delete<DeleteResponse>(
+          DOCUMENTS_PATH,
+          {
+            data: request,
+          }
+        );
+        const result: APIResult<DeleteResponse> = {
+          data: response.data, 
+          error: null
+        }
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.error(
+            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
+          );
+          const result: APIResult<DeleteResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
     },
     query: async (request: QueryRequest) => {
-      return await readerClient.post<QueryResponse>("/query", request);
+      try {
+        const response = await readerClient.post<QueryResponse>(
+          QUERY_PATH,
+          request
+        );
+        const result: APIResult<QueryResponse> = {
+          data: response.data, 
+          error: null
+        }
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.error(
+            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
+          );
+          const result: APIResult<QueryResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
     },
   };
 };
@@ -94,8 +214,9 @@ export interface QueryResponse {
   result_count: number;
   sql?: string | undefined | null;
   results: {
+    "__id": string;
+    "__distance": number;
     [key: string]: string | number | undefined | null;
-    distance?: number | undefined | null;
   }[];
 }
 
@@ -117,4 +238,9 @@ type Metadata = Value | undefined | null;
 
 interface Value {
   [key: string]: string | number;
+}
+
+export interface APIResult<T> {
+  data: T | null;
+  error: string | null;
 }
