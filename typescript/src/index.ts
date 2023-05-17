@@ -5,7 +5,7 @@ const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
 
 const COMPOSER_URL = "https://composer.envelope.ai/api/v1";
-const READER_URL = "http://localhost:9000/";
+const READER_URL = "https://reader.envelope.ai/api/v1";
 const API_KEY_HEADER_NAME = "x-envelope-key";
 
 const _setAndValidateHost = (host: string) => {
