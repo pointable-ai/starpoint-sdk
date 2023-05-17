@@ -34,6 +34,21 @@ const _setAndValidateHost = (host: string) => {
   return trimmed_hostname;
 };
 
+const _sanitizeCollectionIdentifiersInRequest = <T>(request: ByWrapper<T>) => {
+  if ('collection_id' in request && 'collection_name' in request) {
+    throw new Error("Request has too many identifiers. Either pass in collection_id or collection_name, not both");
+  }
+  if (!('collection_id' in request) && !('collection_name' in request)) {
+    throw new Error("Did not specify id or name identifier for collection in request");
+  }
+  if (!('collection_id' in request) && 'collection_name' in request && !request.collection_name) {
+    throw new Error("Name identifier cannot be null for collection in request");
+  }
+  if (!('collection_name' in request) && 'collection_id' in request && !request.collection_id) {
+    throw new Error("Id cannot be null for collection in request");
+  }
+}
+
 const initialize = (
   apiKey: string,
   composerHostURL?: string,
@@ -54,6 +69,18 @@ const initialize = (
   return {
     insert: async (request: InsertRequest) => {
       try {
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request)
+        if (!request.documents) {
+          throw new Error("Did not specify documents to insert into collection in request");
+        }
+        if (request.documents && request.documents.some((document) => !document.embedding )) {
+          throw new Error("Did not specify an embedding for a document in the request")
+        }
+        if (request.documents && request.documents.some((document) => typeof document.embedding !== "number")){
+          throw new Error("One of the embeddings for a document contains an invalid number");
+        }
+        // make api call
         const response = await composerClient.post<InsertResponse>(
           DOCUMENTS_PATH,
           request
@@ -65,21 +92,30 @@ const initialize = (
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
-          );
           const result: APIResult<InsertResponse> = {
             data: null,
             error: err?.response?.data
           }
           return result;
         } else {
-          throw new Error("different error than axios");
+          throw err
         }
       }
     },
     update: async (request: UpdateRequest) => {
       try {
+         // sanitize request
+         _sanitizeCollectionIdentifiersInRequest(request)
+         if (!request.documents) {
+           throw new Error("Did not specify documents to update in request");
+         }
+         if (request.documents && request.documents.some((document) => !document.id)) {
+           throw new Error("Did not specify an id for a document in the request")
+         }
+         if (request.documents && request.documents.some((document) => !document.metadata)) {
+          throw new Error("Did not specify metadata for a document in the request")
+        }
+         // make api call
         const response = await composerClient.patch<UpdateResponse>(
           DOCUMENTS_PATH,
           request
@@ -91,9 +127,6 @@ const initialize = (
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
-          );
           const result: APIResult<UpdateResponse> = {
             data: null,
             error: err?.response?.data
@@ -106,6 +139,12 @@ const initialize = (
     },
     delete: async (request: DeleteRequest) => {
       try {
+         // sanitize request
+         _sanitizeCollectionIdentifiersInRequest(request)
+         if (!request.ids) {
+           throw new Error("Did not specify documents to delete in request");
+         }
+         // make api call
         const response = await composerClient.delete<DeleteResponse>(
           DOCUMENTS_PATH,
           {
@@ -119,9 +158,6 @@ const initialize = (
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
-          );
           const result: APIResult<DeleteResponse> = {
             data: null,
             error: err?.response?.data
@@ -134,6 +170,12 @@ const initialize = (
     },
     query: async (request: QueryRequest) => {
       try {
+         // sanitize request
+         _sanitizeCollectionIdentifiersInRequest(request)
+        if (request.query_embedding.some((embedding) => typeof embedding !== "number")){
+          throw new Error("One of the embeddings in the request is not a valid number");
+        }
+         // make api call
         const response = await readerClient.post<QueryResponse>(
           QUERY_PATH,
           request
@@ -145,9 +187,6 @@ const initialize = (
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            `Request failed with status code ${err?.response?.status} and the following message:\n${err?.response?.data}`
-          );
           const result: APIResult<QueryResponse> = {
             data: null,
             error: err?.response?.data
@@ -166,7 +205,7 @@ export default initialize;
 // INSERT TYPES
 interface InsertDocumentsDocument {
   embedding: number[];
-  metadata: Metadata;
+  metadata?: Metadata;
 }
 
 interface InsertDocuments {
