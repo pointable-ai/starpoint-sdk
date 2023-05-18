@@ -4,8 +4,8 @@ import isURL from "validator/lib/isURL";
 const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
 
-const COMPOSER_URL = "https://composer.envelope.ai/api/v1";
-const READER_URL = "https://reader.envelope.ai/api/v1";
+const COMPOSER_URL = "https://composer.envelope.ai";
+const READER_URL = "https://reader.envelope.ai";
 const API_KEY_HEADER_NAME = "x-envelope-key";
 
 const _setAndValidateHost = (host: string) => {
@@ -34,7 +34,7 @@ const _setAndValidateHost = (host: string) => {
   return trimmed_hostname;
 };
 
-const _sanitizeCollectionIdentifiersInRequest = <T>(request: ByWrapper<T>) => {
+function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
   if ('collection_id' in request && 'collection_name' in request) {
     throw new Error("Request has too many identifiers. Either pass in collection_id or collection_name, not both");
   }
@@ -172,7 +172,7 @@ const initialize = (
       try {
          // sanitize request
          _sanitizeCollectionIdentifiersInRequest(request)
-        if (request.query_embedding.some((embedding) => typeof embedding !== "number")){
+        if (request.query_embedding && request.query_embedding.some((embedding) => typeof embedding !== "number")){
           throw new Error("One of the embeddings in the request is not a valid number");
         }
          // make api call
