@@ -85,14 +85,14 @@ const initialize = (
           DOCUMENTS_PATH,
           request
         );
-        const result: APIResult<InsertResponse> = {
+        const result: APIResult<InsertResponse, ErrorResponse> = {
           data: response.data, 
           error: null
         }
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          const result: APIResult<InsertResponse> = {
+          const result: APIResult<InsertResponse, ErrorResponse> = {
             data: null,
             error: err?.response?.data
           }
@@ -120,14 +120,14 @@ const initialize = (
           DOCUMENTS_PATH,
           request
         );
-        const result: APIResult<UpdateResponse> = {
+        const result: APIResult<UpdateResponse, ErrorResponse> = {
           data: response.data, 
           error: null
         }
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          const result: APIResult<UpdateResponse> = {
+          const result: APIResult<UpdateResponse, ErrorResponse> = {
             data: null,
             error: err?.response?.data
           }
@@ -151,14 +151,14 @@ const initialize = (
             data: request,
           }
         );
-        const result: APIResult<DeleteResponse> = {
+        const result: APIResult<DeleteResponse, ErrorResponse> = {
           data: response.data, 
           error: null
         }
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          const result: APIResult<DeleteResponse> = {
+          const result: APIResult<DeleteResponse, ErrorResponse> = {
             data: null,
             error: err?.response?.data
           }
@@ -180,14 +180,14 @@ const initialize = (
           QUERY_PATH,
           request
         );
-        const result: APIResult<QueryResponse> = {
+        const result: APIResult<QueryResponse, ErrorResponse> = {
           data: response.data, 
           error: null
         }
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          const result: APIResult<QueryResponse> = {
+          const result: APIResult<QueryResponse, ErrorResponse> = {
             data: null,
             error: err?.response?.data
           }
@@ -279,7 +279,11 @@ interface Value {
   [key: string]: string | number;
 }
 
-export interface APIResult<T> {
+export interface ErrorResponse {
+  error_message: string
+}
+
+export interface APIResult<T, ErrorResponse> {
   data: T | null;
-  error: string | null;
+  error: ErrorResponse | null;
 }
