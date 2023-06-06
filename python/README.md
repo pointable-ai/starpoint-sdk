@@ -1,17 +1,17 @@
-# Envelope AI SDK (wayfarer)
+# Pointlab SDK
 
 ## Installation
 
-`pip install envelope-ai`
+`pip install pointlab`
 
 ## Quickstart
 
-After you have a API key and a collection created on your envelope account
+After you have a API key and a collection created on your pointlab account
 
 ```python
-from wayfarer.wayfarer import Wayfarer
+from pointlab.db import DbClient
 
-client = Wayfarer(api_key="<your-api-key-here>")
+client = DbClient(api_key="<your-api-key-here>")
 
 documents = {
     "embeddings": [1.0, 0, 0.8],
