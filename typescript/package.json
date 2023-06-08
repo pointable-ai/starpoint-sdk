@@ -1,8 +1,8 @@
 {
-  "name": "envelope-sdk",
-  "author": "envelope.ai",
+  "name": "starpoint-sdk",
+  "author": "starpoint.ai",
   "version": "0.1.2",
-  "description": "TypeScript API for envelope.ai",
+  "description": "TypeScript API for starpoint.ai",
   "source": "src/index.ts",
   "main": "dist/main.js",
   "types": "dist/types.d.ts",

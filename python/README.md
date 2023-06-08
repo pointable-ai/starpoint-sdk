@@ -1,24 +1,30 @@
-# Envelope AI SDK (wayfarer)
+# Starpoint AI SDK
 
 ## Installation
 
-`pip install envelope-ai`
+`pip install starpoint`
 
 ## Quickstart
 
-After you have a API key and a collection created on your envelope account
+After you have a API key and a collection created on your starpoint account
 
 ```python
-from wayfarer.wayfarer import Wayfarer
+from starpoint.db import DbClient
 
-client = Wayfarer(api_key="<your-api-key-here>")
+client = DbClient(api_key="YOUR_API_KEY_HERE")
 
-documents = {
-    "embeddings": [1.0, 0, 0.8],
-    "metadata": {label: "0"},
-}
+documents = [
+  {
+    "embedding": [0.1, 0.2, 0.3, 0.4, 0.5],
+    "metadata": {
+      "label1": "0",
+      "label2": "1",
+    }
+  },
+]
 
-client.insert(documents=documents, collection_name="<your-collection-name>")  # You might prefer to use collection_id here instead
+// Instead of collection_name you can also use collection_id="COLLECTION_ID"
+client.insert(documents=documents, collection_name="COLLECTION_NAME")
 
 ```
 
