@@ -3,5 +3,3 @@ dist
 .parcel-cache
 .cache
 coverage
-.pypirc
-test-key
