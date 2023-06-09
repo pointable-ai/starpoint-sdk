@@ -3,6 +3,7 @@ import isURL from "validator/lib/isURL";
 
 const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
+const INFER_SCHEMA_PATH = "/api/v1/infer_schema";
 
 const COMPOSER_URL = "https://composer.starpoint.ai";
 const READER_URL = "https://reader.starpoint.ai";
@@ -197,6 +198,32 @@ const initialize = (
         }
       }
     },
+    inferSchema: async (request: InferSchemaRequest) => {
+      try {
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request)
+        // make api call
+        const response = await readerClient.post<InferSchemaResponse>(
+          INFER_SCHEMA_PATH,
+          request
+        );
+        const result: APIResult<InferSchemaResponse, ErrorResponse> = {
+          data: response.data,
+          error: null
+        }
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          const result: APIResult<InferSchemaResponse, ErrorResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
+    }
   };
 };
 
@@ -257,6 +284,25 @@ export interface QueryResponse {
     "__distance": number;
     [key: string]: string | number | undefined | null;
   }[];
+}
+
+// INFER SCHEMA TYPES
+export enum InferredType {
+  String,
+  Number,
+  Boolean,
+  Array,
+  Object,
+}
+interface InferredSchema {
+  types: Record<string, InferredType[]>
+  nullability: Record<string, boolean>
+}
+
+export type InferSchemaRequest = ByWrapper<{}>;
+
+export interface InferSchemaResponse {
+  inferred_schema: InferredSchema
 }
 
 interface ByCollectionName {
