@@ -22,5 +22,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/starpoint-ai/wayfarer"
-"Bug Tracker" = "https://github.com/starpoint-ai/wayfarer/issues"
+"Homepage" = "https://github.com/starpoint-ai/starpoint"
+"Bug Tracker" = "https://github.com/starpoint-ai/starpoint/issues"

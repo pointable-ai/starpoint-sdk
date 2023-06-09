@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 
 DOCUMENTS_PATH = "/api/v1/documents"
 QUERY_PATH = "/api/v1/query"
+INFER_SCHEMA_PATH = "/api/v1/infer_schema"
 API_HEADER_KEY = "x-starpoint-key"
 
 READER_URL = "https://reader.starpoint.ai"
@@ -241,9 +242,46 @@ class Reader(object):
             return {}
         return response.json()
 
+    def infer_schema(
+        self,
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[any, any]: 
+        _check_collection_identifier_collision(collection_id, collection_name)
+        # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
-class Wayfarer(object):
-    """docstring for Wayfarer"""
+        # TODO: filter through query_embedding to make sure values are what we expect
+        """
+        dict(
+            collection_id="collection_id_example",
+            collection_name="collection_name_example",
+        )
+        """
+
+        request_data = dict(
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
+        response = requests.post(
+            url=f"{self.host}{INFER_SCHEMA_PATH}",
+            json=request_data,
+            headers=_build_header(
+                api_key=self.api_key,
+                additional_headers={"Content-Type": "application/json"},
+            ),
+        )
+
+        if not response.ok:
+            LOGGER.error(
+                f"Request failed with status code {response.status_code} "
+                f"and the following message:\n{response.text}"
+            )
+            return {}
+        return response.json()
+
+
+class StarpointDB(object):
+    """docstring for StarpointDB"""
 
     def __init__(
         self,
@@ -290,6 +328,16 @@ class Wayfarer(object):
             collection_id=collection_id,
             collection_name=collection_name,
             query_embedding=query_embedding,
+        )
+
+    def infer_schema(
+        self,
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        return self.reader.infer_schema(
+            collection_id=collection_id,
+            collection_name=collection_name,
         )
 
     def update(
