@@ -11,8 +11,8 @@ DOCUMENTS_PATH = "/api/v1/documents"
 QUERY_PATH = "/api/v1/query"
 API_HEADER_KEY = "x-starpoint-key"
 
-READER_URL = "https://reader.starpoint.ai"
-COMPOSER_URL = "https://composer.starpoint.ai"
+READER_URL = "https://grimoire.starpoint.ai"
+COMPOSER_URL = "https://warden.starpoint.ai"
 
 
 def _build_header(api_key: UUID, additional_headers: Dict[str, str]):
@@ -242,8 +242,8 @@ class Reader(object):
         return response.json()
 
 
-class Wayfarer(object):
-    """docstring for Wayfarer"""
+class Client(object):
+    """docstring for Client"""
 
     def __init__(
         self,
