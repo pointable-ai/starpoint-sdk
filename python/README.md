@@ -9,9 +9,9 @@
 After you have a API key and a collection created on your starpoint account
 
 ```python
-from starpoint.db import DbClient
+from starpoint.db import Client
 
-client = DbClient(api_key="YOUR_API_KEY_HERE")
+client = Client(api_key="YOUR_API_KEY_HERE")
 
 documents = [
   {
@@ -27,4 +27,3 @@ documents = [
 client.insert(documents=documents, collection_name="COLLECTION_NAME")
 
 ```
-

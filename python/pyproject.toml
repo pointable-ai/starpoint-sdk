@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "starpoint-ai"
+name = "starpoint"
 version = "0.0.6"
 authors = [
   { name="starpoint.ai", email="support@starpoint.ai"},
