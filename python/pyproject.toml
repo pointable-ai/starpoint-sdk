@@ -3,12 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "envelope-ai"
+name = "starpoint-ai"
 version = "0.0.6"
 authors = [
-  { name="envelope.ai", email="support@envelope.ai"},
+  { name="starpoint.ai", email="support@starpoint.ai"},
 ]
-description = "SDK for envelope DB"
+description = "SDK for Starpoint DB"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -22,5 +22,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/envelope-ai/wayfarer"
-"Bug Tracker" = "https://github.com/envelope-ai/wayfarer/issues"
+"Homepage" = "https://github.com/starpoint-ai/wayfarer"
+"Bug Tracker" = "https://github.com/starpoint-ai/wayfarer/issues"

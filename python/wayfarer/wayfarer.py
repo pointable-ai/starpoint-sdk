@@ -9,10 +9,10 @@ LOGGER = logging.getLogger(__name__)
 
 DOCUMENTS_PATH = "/api/v1/documents"
 QUERY_PATH = "/api/v1/query"
-API_HEADER_KEY = "x-envelope-key"
+API_HEADER_KEY = "x-starpoint-key"
 
-READER_URL = "https://reader.envelope.ai"
-COMPOSER_URL = "https://composer.envelope.ai"
+READER_URL = "https://reader.starpoint.ai"
+COMPOSER_URL = "https://composer.starpoint.ai"
 
 
 def _build_header(api_key: UUID, additional_headers: Dict[str, str]):

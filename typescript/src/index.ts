@@ -4,9 +4,9 @@ import isURL from "validator/lib/isURL";
 const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
 
-const COMPOSER_URL = "https://composer.envelope.ai";
-const READER_URL = "https://reader.envelope.ai";
-const API_KEY_HEADER_NAME = "x-envelope-key";
+const COMPOSER_URL = "https://composer.starpoint.ai";
+const READER_URL = "https://reader.starpoint.ai";
+const API_KEY_HEADER_NAME = "x-starpoint-key";
 
 const _setAndValidateHost = (host: string) => {
   if (!host) {
