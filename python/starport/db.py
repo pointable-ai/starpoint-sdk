@@ -249,8 +249,7 @@ class Reader(object):
     ) -> Dict[any, any]: 
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
-
-        # TODO: filter through query_embedding to make sure values are what we expect
+        
         """
         dict(
             collection_id="collection_id_example",
