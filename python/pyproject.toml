@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "starpoint"
-version = "0.0.6"
+version = "0.0.1"
 authors = [
   { name="pointable", email="support@pointable.ai"},
 ]
