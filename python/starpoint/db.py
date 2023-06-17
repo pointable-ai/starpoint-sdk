@@ -282,7 +282,7 @@ class Client(object):
 
     def query(
         self,
-        sql: str,
+        sql: Optional[str],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
