@@ -14,8 +14,16 @@ API_HEADER_KEY = "x-starpoint-key"
 READER_URL = "https://grimoire.starpoint.ai"
 COMPOSER_URL = "https://warden.starpoint.ai"
 
+NO_HOST_ERROR = "No host value provided. A host must be provided."
+NO_COLLECTION_VALUE_ERROR = (
+    "Please provide at least one value for either collection_id or collection_name."
+)
+MULTI_COLLECTION_VALUE_ERROR = (
+    "Please only provide either collection_id or collection_name in your request."
+)
 
-def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]]=None):
+
+def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
     header = {API_HEADER_KEY: str(api_key)}
     if additional_headers is not None:
         header.update(additional_headers)
@@ -35,15 +43,13 @@ def _set_and_validate_host(host: str):
     return trimmed_hostname
 
 
-def _check_collection_identifier_collision(collection_id: Optional[UUID], collection_name: Optional[str]):
+def _check_collection_identifier_collision(
+    collection_id: Optional[UUID] = None, collection_name: Optional[str] = None
+):
     if collection_id is None and collection_name is None:
-        raise ValueError(
-            "Please provide at least one value for either collection_id or collection_name."
-        )
+        raise ValueError(NO_COLLECTION_VALUE_ERROR)
     elif collection_id and collection_name:
-        raise ValueError(
-            "Please only provide either collection_id or collection_name in your request."
-        )
+        raise ValueError(MULTI_COLLECTION_VALUE_ERROR)
 
 
 class Composer(object):
