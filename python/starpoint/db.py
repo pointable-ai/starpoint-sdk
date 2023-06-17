@@ -15,10 +15,10 @@ READER_URL = "https://grimoire.starpoint.ai"
 COMPOSER_URL = "https://warden.starpoint.ai"
 
 
-def _build_header(api_key: UUID, additional_headers: Dict[str, str]):
+def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]]=None):
     header = {API_HEADER_KEY: str(api_key)}
-    # TODO: Check if there'll be header collision
-    header.update(additional_headers)
+    if additional_headers is not None:
+        header.update(additional_headers)
     return header
 
 
