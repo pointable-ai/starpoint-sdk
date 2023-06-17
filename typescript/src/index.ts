@@ -244,6 +244,7 @@ export interface DeleteResponse {
 interface QueryDocuments {
   query_embedding?: number[] | undefined | null;
   sql?: string | undefined | null;
+  params?: Array<string | number> | undefined | null;
 }
 
 export type QueryRequest = ByWrapper<QueryDocuments>;
