@@ -1,4 +1,5 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -74,3 +75,84 @@ def test__check_collection_identifier_collision_both_value():
         db._check_collection_identifier_collision(
             collection_id=uuid4(), collection_name="test_collection_name"
         )
+
+
+@pytest.fixture
+def composer_uuid() -> UUID:
+    return uuid4()
+
+
+@pytest.fixture
+def composer(composer_uuid: UUID) -> db.Composer:
+    return db.Composer(composer_uuid)
+
+
+def test_composer_default_init(composer: db.Composer, composer_uuid: UUID):
+    assert composer.host
+    assert composer.host == db.COMPOSER_URL
+    assert composer.api_key == composer_uuid
+
+
+def test_composer_init_non_default_host(composer_uuid: UUID):
+    test_host = "http://www.example.com"
+    composer = db.Composer(api_key=composer_uuid, host=test_host)
+
+    assert composer.host
+    assert composer.host == test_host
+    assert composer.api_key == composer_uuid
+
+
+@patch("starpoint.db.requests")
+def test_composer_delete_by_collection_id(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.delete(documents=[uuid4()], collection_id=uuid4())
+
+    request_mock.delete.assert_called_once()
+
+
+@patch("starpoint.db.requests")
+def test_composer_delete_by_collection_name(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.delete(documents=[uuid4()], collection_name="mock_collection_name")
+
+    request_mock.delete.assert_called_once()
+
+
+@patch("starpoint.db.requests")
+def test_composer_delete_not_200(request_mock: MagicMock, composer: db.Composer):
+    request_mock.delete().ok = False
+
+    expected_json = {}
+
+    actual_json = composer.delete(
+        documents=[uuid4()], collection_name="mock_collection_name"
+    )
+
+    request_mock.delete.assert_called()
+    assert actual_json == expected_json
+
+
+def test_composer_insert_by_collection_id(composer: db.Composer):
+    ...
+
+
+def test_composer_insert_by_collection_name(composer: db.Composer):
+    ...
+
+
+def test_composer_insert_not_200(composer: db.Composer):
+    ...
+
+
+def test_composer_update_by_collection_id(composer: db.Composer):
+    ...
+
+
+def test_composer_update_by_collection_name(composer: db.Composer):
+    ...
+
+
+def test_composer_update_not_200(composer: db.Composer):
+    ...

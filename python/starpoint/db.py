@@ -64,8 +64,8 @@ class Composer(object):
 
     def delete(
         self,
-        documents: List[UUID],
-        collection_id: Optional[UUID] = None,
+        documents: List[str],
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
@@ -82,9 +82,9 @@ class Composer(object):
         """
 
         request_data = dict(
-            collection_id=collection_id,
+            collection_id=str(collection_id),
             collection_name=collection_name,
-            documents=documents,
+            documents=[str(document) for document in documents],
         )
         response = requests.delete(
             url=f"{self.host}{DOCUMENTS_PATH}",
