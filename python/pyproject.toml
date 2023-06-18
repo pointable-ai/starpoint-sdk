@@ -3,10 +3,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "starpoint-ai"
+name = "starpoint"
 version = "0.0.6"
 authors = [
-  { name="starpoint.ai", email="support@starpoint.ai"},
+  { name="pointable", email="support@pointable.ai"},
 ]
 description = "SDK for Starpoint DB"
 readme = "README.md"
@@ -22,5 +22,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/starpoint-ai/starpoint"
-"Bug Tracker" = "https://github.com/starpoint-ai/starpoint/issues"
+"Homepage" = "https://github.com/starpoint-ai/sdk"
+"Bug Tracker" = "https://github.com/starpoint-ai/sdk/issues"
