@@ -196,3 +196,56 @@ def test_composer_update_not_200(request_mock: MagicMock, composer: db.Composer)
 
     request_mock.patch.assert_called()
     assert actual_json == expected_json
+
+
+@pytest.fixture
+def reader_uuid() -> UUID:
+    return uuid4()
+
+
+@pytest.fixture
+def reader(reader_uuid: UUID) -> db.Reader:
+    return db.Reader(reader_uuid)
+
+
+def test_reader_default_init(reader: db.Reader, reader_uuid: UUID):
+    assert reader.host
+    assert reader.host == db.READER_URL
+    assert reader.api_key == reader_uuid
+
+
+def test_reader_init_non_default_host(reader_uuid: UUID):
+    test_host = "http://www.example.com"
+    reader = db.Reader(api_key=reader_uuid, host=test_host)
+
+    assert reader.host
+    assert reader.host == test_host
+    assert reader.api_key == reader_uuid
+
+
+# @patch("starpoint.db.requests")
+# def test_reader_update_by_collection_id(request_mock: MagicMock, reader: db.Composer):
+#     reader.query(documents=[uuid4()], collection_id=uuid4())
+
+#     request_mock.patch.assert_called_once()
+
+
+# @patch("starpoint.db.requests")
+# def test_reader_update_by_collection_name(request_mock: MagicMock, reader: db.Composer):
+#     reader.update(documents=[uuid4()], collection_name="mock_collection_name")
+
+#     request_mock.patch.assert_called_once()
+
+
+# @patch("starpoint.db.requests")
+# def test_reader_update_not_200(request_mock: MagicMock, reader: db.Composer):
+#     request_mock.patch().ok = False
+
+#     expected_json = {}
+
+#     actual_json = reader.update(
+#         documents=[uuid4()], collection_name="mock_collection_name"
+#     )
+
+#     request_mock.patch.assert_called()
+#     assert actual_json == expected_json
