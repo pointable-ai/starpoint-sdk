@@ -200,10 +200,11 @@ class Reader(object):
 
     def query(
         self,
-        sql: str,
+        sql: Optional[str] = None,
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
+        params: Optional[List[Any]] = None,
     ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
@@ -223,6 +224,7 @@ class Reader(object):
             collection_name=collection_name,
             query_embedding=query_embedding,
             sql=sql,
+            params=params,
         )
         response = requests.post(
             url=f"{self.host}{QUERY_PATH}",
@@ -280,16 +282,18 @@ class Client(object):
 
     def query(
         self,
-        sql: str,
+        sql: Optional[str] = None,
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
+        params: Optional[List[Any]] = None,
     ) -> Dict[Any, Any]:
         return self.reader.query(
             sql=sql,
             collection_id=collection_id,
             collection_name=collection_name,
             query_embedding=query_embedding,
+            params=params,
         )
 
     def update(
