@@ -134,25 +134,65 @@ def test_composer_delete_not_200(request_mock: MagicMock, composer: db.Composer)
     assert actual_json == expected_json
 
 
-def test_composer_insert_by_collection_id(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_insert_by_collection_id(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.insert(documents=[uuid4()], collection_id=uuid4())
+
+    request_mock.post.assert_called_once()
 
 
-def test_composer_insert_by_collection_name(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_insert_by_collection_name(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.insert(documents=[uuid4()], collection_name="mock_collection_name")
+
+    request_mock.post.assert_called_once()
 
 
-def test_composer_insert_not_200(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_insert_not_200(request_mock: MagicMock, composer: db.Composer):
+    request_mock.post().ok = False
+
+    expected_json = {}
+
+    actual_json = composer.insert(
+        documents=[uuid4()], collection_name="mock_collection_name"
+    )
+
+    request_mock.post.assert_called()
+    assert actual_json == expected_json
 
 
-def test_composer_update_by_collection_id(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_update_by_collection_id(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.update(documents=[uuid4()], collection_id=uuid4())
+
+    request_mock.patch.assert_called_once()
 
 
-def test_composer_update_by_collection_name(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_update_by_collection_name(
+    request_mock: MagicMock, composer: db.Composer
+):
+    composer.update(documents=[uuid4()], collection_name="mock_collection_name")
+
+    request_mock.patch.assert_called_once()
 
 
-def test_composer_update_not_200(composer: db.Composer):
-    ...
+@patch("starpoint.db.requests")
+def test_composer_update_not_200(request_mock: MagicMock, composer: db.Composer):
+    request_mock.patch().ok = False
+
+    expected_json = {}
+
+    actual_json = composer.update(
+        documents=[uuid4()], collection_name="mock_collection_name"
+    )
+
+    request_mock.patch.assert_called()
+    assert actual_json == expected_json
