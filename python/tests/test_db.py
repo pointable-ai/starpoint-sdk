@@ -102,21 +102,29 @@ def test_composer_init_non_default_host(composer_uuid: UUID):
     assert composer.api_key == composer_uuid
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_delete_by_collection_id(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.delete(documents=[uuid4()], collection_id=uuid4())
+    test_uuid = uuid4()
 
+    composer.delete(documents=[uuid4()], collection_id=test_uuid)
+
+    collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.delete.assert_called_once()
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_delete_by_collection_name(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.delete(documents=[uuid4()], collection_name="mock_collection_name")
+    test_collection_name = "mock_collection_name"
 
+    composer.delete(documents=[uuid4()], collection_name=test_collection_name)
+
+    collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.delete.assert_called_once()
 
 
@@ -134,21 +142,29 @@ def test_composer_delete_not_200(request_mock: MagicMock, composer: db.Composer)
     assert actual_json == expected_json
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_insert_by_collection_id(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.insert(documents=[uuid4()], collection_id=uuid4())
+    test_uuid = uuid4()
 
+    composer.insert(documents=[uuid4()], collection_id=test_uuid)
+
+    collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.post.assert_called_once()
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_insert_by_collection_name(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.insert(documents=[uuid4()], collection_name="mock_collection_name")
+    test_collection_name = "mock_collection_name"
 
+    composer.insert(documents=[uuid4()], collection_name=test_collection_name)
+
+    collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.post.assert_called_once()
 
 
@@ -166,21 +182,29 @@ def test_composer_insert_not_200(request_mock: MagicMock, composer: db.Composer)
     assert actual_json == expected_json
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_update_by_collection_id(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.update(documents=[uuid4()], collection_id=uuid4())
+    test_uuid = uuid4()
 
+    composer.update(documents=[uuid4()], collection_id=test_uuid)
+
+    collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.patch.assert_called_once()
 
 
+@patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_update_by_collection_name(
-    request_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
 ):
-    composer.update(documents=[uuid4()], collection_name="mock_collection_name")
+    test_collection_name = "mock_collection_name"
 
+    composer.update(documents=[uuid4()], collection_name=test_collection_name)
+
+    collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.patch.assert_called_once()
 
 
@@ -243,7 +267,7 @@ def test_reader_query_by_collection_name(
 ):
     test_collection_name = "mock_collection_name"
 
-    reader.query(collection_name="mock_collection_name")
+    reader.query(collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.post.assert_called_once()
