@@ -223,29 +223,39 @@ def test_reader_init_non_default_host(reader_uuid: UUID):
     assert reader.api_key == reader_uuid
 
 
-# @patch("starpoint.db.requests")
-# def test_reader_update_by_collection_id(request_mock: MagicMock, reader: db.Composer):
-#     reader.query(documents=[uuid4()], collection_id=uuid4())
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.requests")
+def test_reader_query_by_collection_id(
+    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Composer
+):
+    test_uuid = uuid4()
 
-#     request_mock.patch.assert_called_once()
+    reader.query(collection_id=test_uuid)
+
+    collision_mock.assert_called_once_with(test_uuid, None)
+    request_mock.post.assert_called_once()
 
 
-# @patch("starpoint.db.requests")
-# def test_reader_update_by_collection_name(request_mock: MagicMock, reader: db.Composer):
-#     reader.update(documents=[uuid4()], collection_name="mock_collection_name")
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.requests")
+def test_reader_query_by_collection_name(
+    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Composer
+):
+    test_collection_name = "mock_collection_name"
 
-#     request_mock.patch.assert_called_once()
+    reader.query(collection_name="mock_collection_name")
+
+    collision_mock.assert_called_once_with(None, test_collection_name)
+    request_mock.post.assert_called_once()
 
 
-# @patch("starpoint.db.requests")
-# def test_reader_update_not_200(request_mock: MagicMock, reader: db.Composer):
-#     request_mock.patch().ok = False
+@patch("starpoint.db.requests")
+def test_reader_query_not_200(request_mock: MagicMock, reader: db.Composer):
+    request_mock.post().ok = False
 
-#     expected_json = {}
+    expected_json = {}
 
-#     actual_json = reader.update(
-#         documents=[uuid4()], collection_name="mock_collection_name"
-#     )
+    actual_json = reader.query(collection_name="mock_collection_name")
 
-#     request_mock.patch.assert_called()
-#     assert actual_json == expected_json
+    request_mock.post.assert_called()
+    assert actual_json == expected_json
