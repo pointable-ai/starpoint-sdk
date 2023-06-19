@@ -283,3 +283,58 @@ def test_reader_query_not_200(request_mock: MagicMock, reader: db.Composer):
 
     request_mock.post.assert_called()
     assert actual_json == expected_json
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Composer")
+def test_client_default_init(mock_composer: MagicMock, mock_reader: MagicMock):
+    test_uuid = uuid4()
+
+    client = db.Client(api_key=test_uuid)
+
+    mock_composer.assert_called_once_with(api_key=test_uuid, host=None)
+    mock_reader.assert_called_once_with(api_key=test_uuid, host=None)
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Composer")
+def test_client_delete(mock_composer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.delete(documents=[uuid4()])
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_composer().delete.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Composer")
+def test_client_insert(mock_composer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.insert(documents=[{"mock": "value"}])
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_composer().insert.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Composer")
+def test_client_query(mock_composer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.query()
+
+    mock_composer.assert_called_once()  # Only called during init
+    mock_reader().query.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Composer")
+def test_client_update(mock_composer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.update(documents=[{"mock": "value"}])
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_composer().update.assert_called_once()
