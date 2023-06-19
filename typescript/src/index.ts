@@ -86,7 +86,7 @@ const initialize = (
           request
         );
         const result: APIResult<InsertResponse, ErrorResponse> = {
-          data: response.data, 
+          data: response.data,
           error: null
         }
         return result;
@@ -121,7 +121,7 @@ const initialize = (
           request
         );
         const result: APIResult<UpdateResponse, ErrorResponse> = {
-          data: response.data, 
+          data: response.data,
           error: null
         }
         return result;
@@ -152,7 +152,7 @@ const initialize = (
           }
         );
         const result: APIResult<DeleteResponse, ErrorResponse> = {
-          data: response.data, 
+          data: response.data,
           error: null
         }
         return result;
@@ -181,7 +181,7 @@ const initialize = (
           request
         );
         const result: APIResult<QueryResponse, ErrorResponse> = {
-          data: response.data, 
+          data: response.data,
           error: null
         }
         return result;
