@@ -78,28 +78,28 @@ def test__check_collection_identifier_collision_both_value():
 
 
 @pytest.fixture
-def composer_uuid() -> UUID:
+def api_uuid() -> UUID:
     return uuid4()
 
 
 @pytest.fixture
-def composer(composer_uuid: UUID) -> db.Composer:
-    return db.Composer(composer_uuid)
+def composer(api_uuid: UUID) -> db.Composer:
+    return db.Composer(api_uuid)
 
 
-def test_composer_default_init(composer: db.Composer, composer_uuid: UUID):
+def test_composer_default_init(composer: db.Composer, api_uuid: UUID):
     assert composer.host
     assert composer.host == db.COMPOSER_URL
-    assert composer.api_key == composer_uuid
+    assert composer.api_key == api_uuid
 
 
-def test_composer_init_non_default_host(composer_uuid: UUID):
+def test_composer_init_non_default_host(api_uuid: UUID):
     test_host = "http://www.example.com"
-    composer = db.Composer(api_key=composer_uuid, host=test_host)
+    composer = db.Composer(api_key=api_uuid, host=test_host)
 
     assert composer.host
     assert composer.host == test_host
-    assert composer.api_key == composer_uuid
+    assert composer.api_key == api_uuid
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
@@ -223,28 +223,23 @@ def test_composer_update_not_200(request_mock: MagicMock, composer: db.Composer)
 
 
 @pytest.fixture
-def reader_uuid() -> UUID:
-    return uuid4()
+def reader(api_uuid: UUID) -> db.Reader:
+    return db.Reader(api_uuid)
 
 
-@pytest.fixture
-def reader(reader_uuid: UUID) -> db.Reader:
-    return db.Reader(reader_uuid)
-
-
-def test_reader_default_init(reader: db.Reader, reader_uuid: UUID):
+def test_reader_default_init(reader: db.Reader, api_uuid: UUID):
     assert reader.host
     assert reader.host == db.READER_URL
-    assert reader.api_key == reader_uuid
+    assert reader.api_key == api_uuid
 
 
-def test_reader_init_non_default_host(reader_uuid: UUID):
+def test_reader_init_non_default_host(api_uuid: UUID):
     test_host = "http://www.example.com"
-    reader = db.Reader(api_key=reader_uuid, host=test_host)
+    reader = db.Reader(api_key=api_uuid, host=test_host)
 
     assert reader.host
     assert reader.host == test_host
-    assert reader.api_key == reader_uuid
+    assert reader.api_key == api_uuid
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
