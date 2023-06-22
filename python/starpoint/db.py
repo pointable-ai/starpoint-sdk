@@ -21,6 +21,7 @@ NO_COLLECTION_VALUE_ERROR = (
 MULTI_COLLECTION_VALUE_ERROR = (
     "Please only provide either collection_id or collection_name in your request."
 )
+SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -86,14 +87,18 @@ class Composer(object):
             collection_name=collection_name,
             documents=[str(document) for document in documents],
         )
-        response = requests.delete(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.delete(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -131,14 +136,18 @@ class Composer(object):
             collection_name=collection_name,
             documents=documents,
         )
-        response = requests.post(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.post(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -176,14 +185,18 @@ class Composer(object):
             collection_name=collection_name,
             documents=documents,
         )
-        response = requests.patch(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.patch(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -232,14 +245,18 @@ class Reader(object):
             sql=sql,
             params=params,
         )
-        response = requests.post(
-            url=f"{self.host}{QUERY_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.post(
+                url=f"{self.host}{QUERY_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(

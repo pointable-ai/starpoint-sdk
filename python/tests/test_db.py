@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 from unittest.mock import MagicMock, patch
 
 import pytest
+from requests.exceptions import SSLError
 
 from starpoint import db
 
@@ -142,6 +143,15 @@ def test_composer_delete_not_200(request_mock: MagicMock, composer: db.Composer)
     assert actual_json == expected_json
 
 
+@patch("starpoint.db.requests")
+def test_composer_delete_SSLError(request_mock: MagicMock, composer: db.Composer):
+    request_mock.exceptions.SSLError = SSLError
+    request_mock.delete.side_effect = SSLError("mock exception")
+
+    with pytest.raises(SSLError, match="mock exception"):
+        composer.delete(documents=[uuid4()], collection_name="mock_collection_name")
+
+
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_insert_by_collection_id(
@@ -182,6 +192,15 @@ def test_composer_insert_not_200(request_mock: MagicMock, composer: db.Composer)
     assert actual_json == expected_json
 
 
+@patch("starpoint.db.requests")
+def test_composer_insert_SSLError(request_mock: MagicMock, composer: db.Composer):
+    request_mock.exceptions.SSLError = SSLError
+    request_mock.post.side_effect = SSLError("mock exception")
+
+    with pytest.raises(SSLError, match="mock exception"):
+        composer.insert(documents=[uuid4()], collection_name="mock_collection_name")
+
+
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_update_by_collection_id(
@@ -220,6 +239,15 @@ def test_composer_update_not_200(request_mock: MagicMock, composer: db.Composer)
 
     request_mock.patch.assert_called()
     assert actual_json == expected_json
+
+
+@patch("starpoint.db.requests")
+def test_composer_update_SSLError(request_mock: MagicMock, composer: db.Composer):
+    request_mock.exceptions.SSLError = SSLError
+    request_mock.patch.side_effect = SSLError("mock exception")
+
+    with pytest.raises(SSLError, match="mock exception"):
+        composer.update(documents=[uuid4()], collection_name="mock_collection_name")
 
 
 @pytest.fixture
@@ -278,6 +306,15 @@ def test_reader_query_not_200(request_mock: MagicMock, reader: db.Composer):
 
     request_mock.post.assert_called()
     assert actual_json == expected_json
+
+
+@patch("starpoint.db.requests")
+def test_composer_query_SSLError(request_mock: MagicMock, reader: db.Reader):
+    request_mock.exceptions.SSLError = SSLError
+    request_mock.post.side_effect = SSLError("mock exception")
+
+    with pytest.raises(SSLError, match="mock exception"):
+        reader.query(collection_name="mock_collection_name")
 
 
 @patch("starpoint.db.Reader")
