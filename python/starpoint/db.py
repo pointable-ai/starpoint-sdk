@@ -80,7 +80,7 @@ class Composer(object):
 
     def delete(
         self,
-        documents: List[str],
+        documents: List[UUID],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
