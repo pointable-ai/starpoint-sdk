@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 from unittest.mock import MagicMock, patch
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from requests.exceptions import SSLError
 
 from starpoint import db
@@ -31,6 +32,39 @@ def test__build_header_with_additional_header():
     assert actual_header == expected_header
 
 
+@patch("starpoint.db.requests")
+def test__check_host_health_healty_host(requests_mock: MagicMock):
+    mock_hostname = "mock_hostname"
+
+    db._check_host_health(mock_hostname)
+
+    requests_mock.get.assert_called_once_with(mock_hostname)
+
+
+@patch("starpoint.db.requests")
+def test__check_host_health_not_200_host_assert(requests_mock: MagicMock):
+    requests_mock.get().ok = False
+    mock_hostname = "mock_hostname"
+
+    with pytest.raises(AssertionError):
+        db._check_host_health(mock_hostname)
+
+
+@patch("starpoint.db.requests")
+def test__check_host_health_unhealthy_host_assert(
+    requests_mock: MagicMock, monkeypatch: MonkeyPatch
+):
+    requests_mock.get().text = "unhealthy message"
+    mock_hostname = "mock_hostname"
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    db._check_host_health(mock_hostname)
+
+    logger_mock.warning.assert_called_once()
+
+
 def test__set_and_validate_host_no_host():
     with pytest.raises(ValueError, match=db.NO_HOST_ERROR):
         db._set_and_validate_host(host="")
@@ -39,31 +73,43 @@ def test__set_and_validate_host_no_host():
 @pytest.mark.parametrize(
     "test_host", ("asdf", "pdf://www.example.com", "www.example.com")
 )
-def test__set_and_validate_host_invalid_url(test_host):
+@patch("starpoint.db._check_host_health")
+def test__set_and_validate_host_invalid_url(
+    host_health_mock: MagicMock, test_host: str
+):
     with pytest.raises(ValueError, match=r".*not a valid url format"):
         db._set_and_validate_host(host=test_host)
+    host_health_mock.assert_not_called()
 
 
 @pytest.mark.parametrize(
     "test_host", ("http://www.example.com/", "http://www.example.com//")
 )
-def test__set_and_validate_host_dangling_backslash_trimmed(test_host):
+@patch("starpoint.db._check_host_health")
+def test__set_and_validate_host_dangling_backslash_trimmed(
+    host_health_mock: MagicMock, test_host: str
+):
     expected_hostname = "http://www.example.com"
 
     actual_hostname = db._set_and_validate_host(host=test_host)
 
     assert actual_hostname == expected_hostname
+    host_health_mock.assert_called_once_with(expected_hostname)
 
 
 @pytest.mark.parametrize(
     "test_host", ("http://www.example.com", "https://www.example.com")
 )
-def test__set_and_validate_host_simple_valid_url(test_host):
+@patch("starpoint.db._check_host_health")
+def test__set_and_validate_host_simple_valid_url(
+    host_health_mock: MagicMock, test_host: str
+):
     expected_hostname = test_host
 
     actual_hostname = db._set_and_validate_host(host=test_host)
 
     assert actual_hostname == expected_hostname
+    host_health_mock.assert_called_once_with(expected_hostname)
 
 
 def test__check_collection_identifier_collision_neither_value():
@@ -78,13 +124,14 @@ def test__check_collection_identifier_collision_both_value():
         )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def api_uuid() -> UUID:
     return uuid4()
 
 
-@pytest.fixture
-def composer(api_uuid: UUID) -> db.Composer:
+@pytest.fixture(scope="session")
+@patch("starpoint.db._check_host_health")
+def composer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Composer:
     return db.Composer(api_uuid)
 
 
@@ -250,8 +297,9 @@ def test_composer_update_SSLError(request_mock: MagicMock, composer: db.Composer
         composer.update(documents=[uuid4()], collection_name="mock_collection_name")
 
 
-@pytest.fixture
-def reader(api_uuid: UUID) -> db.Reader:
+@pytest.fixture(scope="session")
+@patch("starpoint.db._check_host_health")
+def reader(host_health_mock: MagicMock, api_uuid: UUID) -> db.Reader:
     return db.Reader(api_uuid)
 
 

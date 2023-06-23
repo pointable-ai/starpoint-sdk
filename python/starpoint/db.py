@@ -14,6 +14,8 @@ API_HEADER_KEY = "x-starpoint-key"
 READER_URL = "https://grimoire.starpoint.ai"
 COMPOSER_URL = "https://warden.starpoint.ai"
 
+HEALTH_CHECK_MESSAGE = "hello"
+
 NO_HOST_ERROR = "No host value provided. A host must be provided."
 NO_COLLECTION_VALUE_ERROR = (
     "Please provide at least one value for either collection_id or collection_name."
@@ -31,6 +33,18 @@ def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = 
     return header
 
 
+def _check_host_health(hostname: str):
+    resp = requests.get(hostname)
+    assert (
+        resp.ok
+    ), f"Host cannot be validated, response from host {hostname}: {resp.text}"
+    if resp.text != HEALTH_CHECK_MESSAGE:
+        LOGGER.warning(
+            f"{hostname} returned {resp.text} instead of {HEALTH_CHECK_MESSAGE}; host may be unhealthy and "
+            "may be unable to serve requests."
+        )
+
+
 def _set_and_validate_host(host: str):
     if not host:
         raise ValueError("No host value provided. A host must be provided.")
@@ -40,7 +54,8 @@ def _set_and_validate_host(host: str):
     # Make sure we don't have dangling backslashes in the url during url composition later
     trimmed_hostname = host.rstrip("/")
 
-    # TODO: Validate host is valid and healthy
+    _check_host_health(trimmed_hostname)
+
     return trimmed_hostname
 
 
