@@ -15,12 +15,35 @@ API_HEADER_KEY = "x-starpoint-key"
 READER_URL = "https://grimoire.starpoint.ai"
 COMPOSER_URL = "https://warden.starpoint.ai"
 
+HEALTH_CHECK_MESSAGE = "hello"
 
-def _build_header(api_key: UUID, additional_headers: Dict[str, str]):
+NO_HOST_ERROR = "No host value provided. A host must be provided."
+NO_COLLECTION_VALUE_ERROR = (
+    "Please provide at least one value for either collection_id or collection_name."
+)
+MULTI_COLLECTION_VALUE_ERROR = (
+    "Please only provide either collection_id or collection_name in your request."
+)
+SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
+
+
+def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
     header = {API_HEADER_KEY: str(api_key)}
-    # TODO: Check if there'll be header collision
-    header.update(additional_headers)
+    if additional_headers is not None:
+        header.update(additional_headers)
     return header
+
+
+def _check_host_health(hostname: str):
+    resp = requests.get(hostname)
+    assert (
+        resp.ok
+    ), f"Host cannot be validated, response from host {hostname}: {resp.text}"
+    if resp.text != HEALTH_CHECK_MESSAGE:
+        LOGGER.warning(
+            f"{hostname} returned {resp.text} instead of {HEALTH_CHECK_MESSAGE}; host may be unhealthy and "
+            "may be unable to serve requests."
+        )
 
 
 def _set_and_validate_host(host: str):
@@ -32,19 +55,18 @@ def _set_and_validate_host(host: str):
     # Make sure we don't have dangling backslashes in the url during url composition later
     trimmed_hostname = host.rstrip("/")
 
-    # TODO: Validate host is valid and healthy
+    _check_host_health(trimmed_hostname)
+
     return trimmed_hostname
 
 
-def _check_collection_identifier_collision(collection_id: Optional[UUID], collection_name: Optional[str]):
+def _check_collection_identifier_collision(
+    collection_id: Optional[UUID] = None, collection_name: Optional[str] = None
+):
     if collection_id is None and collection_name is None:
-        raise ValueError(
-            "Please provide at least one value for either collection_id or collection_name."
-        )
+        raise ValueError(NO_COLLECTION_VALUE_ERROR)
     elif collection_id and collection_name:
-        raise ValueError(
-            "Please only provide either collection_id or collection_name in your request."
-        )
+        raise ValueError(MULTI_COLLECTION_VALUE_ERROR)
 
 
 class Composer(object):
@@ -60,7 +82,7 @@ class Composer(object):
     def delete(
         self,
         documents: List[UUID],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
@@ -77,18 +99,22 @@ class Composer(object):
         """
 
         request_data = dict(
-            collection_id=collection_id,
+            collection_id=str(collection_id),
             collection_name=collection_name,
-            documents=documents,
+            documents=[str(document) for document in documents],
         )
-        response = requests.delete(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.delete(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -126,14 +152,18 @@ class Composer(object):
             collection_name=collection_name,
             documents=documents,
         )
-        response = requests.post(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.post(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -171,14 +201,18 @@ class Composer(object):
             collection_name=collection_name,
             documents=documents,
         )
-        response = requests.patch(
-            url=f"{self.host}{DOCUMENTS_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.patch(
+                url=f"{self.host}{DOCUMENTS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
@@ -227,14 +261,18 @@ class Reader(object):
             sql=sql,
             params=params,
         )
-        response = requests.post(
-            url=f"{self.host}{QUERY_PATH}",
-            json=request_data,
-            headers=_build_header(
-                api_key=self.api_key,
-                additional_headers={"Content-Type": "application/json"},
-            ),
-        )
+        try:
+            response = requests.post(
+                url=f"{self.host}{QUERY_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
 
         if not response.ok:
             LOGGER.error(
