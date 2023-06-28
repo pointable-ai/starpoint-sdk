@@ -131,33 +131,33 @@ def api_uuid() -> UUID:
 
 @pytest.fixture(scope="session")
 @patch("starpoint.db._check_host_health")
-def composer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Writer:
+def writer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Writer:
     return db.Writer(api_uuid)
 
 
-def test_composer_default_init(composer: db.Writer, api_uuid: UUID):
-    assert composer.host
-    assert composer.host == db.COMPOSER_URL
-    assert composer.api_key == api_uuid
+def test_writer_default_init(writer: db.Writer, api_uuid: UUID):
+    assert writer.host
+    assert writer.host == db.COMPOSER_URL
+    assert writer.api_key == api_uuid
 
 
-def test_composer_init_non_default_host(api_uuid: UUID):
+def test_writer_init_non_default_host(api_uuid: UUID):
     test_host = "http://www.example.com"
-    composer = db.Writer(api_key=api_uuid, host=test_host)
+    writer = db.Writer(api_key=api_uuid, host=test_host)
 
-    assert composer.host
-    assert composer.host == test_host
-    assert composer.api_key == api_uuid
+    assert writer.host
+    assert writer.host == test_host
+    assert writer.api_key == api_uuid
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_delete_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_delete_by_collection_id(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
-    composer.delete(documents=[uuid4()], collection_id=test_uuid)
+    writer.delete(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.delete.assert_called_once()
@@ -165,20 +165,20 @@ def test_composer_delete_by_collection_id(
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_delete_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_delete_by_collection_name(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
-    composer.delete(documents=[uuid4()], collection_name=test_collection_name)
+    writer.delete(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.delete.assert_called_once()
 
 
 @patch("starpoint.db.requests")
-def test_composer_delete_not_200(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_delete_not_200(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.delete().ok = False
 
@@ -187,7 +187,7 @@ def test_composer_delete_not_200(
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
-    actual_json = composer.delete(
+    actual_json = writer.delete(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
@@ -197,8 +197,8 @@ def test_composer_delete_not_200(
 
 
 @patch("starpoint.db.requests")
-def test_composer_delete_SSLError(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_delete_SSLError(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.delete.side_effect = SSLError("mock exception")
@@ -207,19 +207,19 @@ def test_composer_delete_SSLError(
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
     with pytest.raises(SSLError, match="mock exception"):
-        composer.delete(documents=[uuid4()], collection_name="mock_collection_name")
+        writer.delete(documents=[uuid4()], collection_name="mock_collection_name")
 
     logger_mock.error.assert_called_once_with(db.SSL_ERROR_MSG)
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_insert_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_insert_by_collection_id(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
-    composer.insert(documents=[uuid4()], collection_id=test_uuid)
+    writer.insert(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.post.assert_called_once()
@@ -227,20 +227,20 @@ def test_composer_insert_by_collection_id(
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_insert_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_insert_by_collection_name(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
-    composer.insert(documents=[uuid4()], collection_name=test_collection_name)
+    writer.insert(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.post.assert_called_once()
 
 
 @patch("starpoint.db.requests")
-def test_composer_insert_not_200(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_insert_not_200(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.post().ok = False
 
@@ -249,7 +249,7 @@ def test_composer_insert_not_200(
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
-    actual_json = composer.insert(
+    actual_json = writer.insert(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
@@ -259,8 +259,8 @@ def test_composer_insert_not_200(
 
 
 @patch("starpoint.db.requests")
-def test_composer_insert_SSLError(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_insert_SSLError(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.post.side_effect = SSLError("mock exception")
@@ -269,19 +269,19 @@ def test_composer_insert_SSLError(
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
     with pytest.raises(SSLError, match="mock exception"):
-        composer.insert(documents=[uuid4()], collection_name="mock_collection_name")
+        writer.insert(documents=[uuid4()], collection_name="mock_collection_name")
 
     logger_mock.error.assert_called_once_with(db.SSL_ERROR_MSG)
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_update_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_update_by_collection_id(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
-    composer.update(documents=[uuid4()], collection_id=test_uuid)
+    writer.update(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
     request_mock.patch.assert_called_once()
@@ -289,20 +289,20 @@ def test_composer_update_by_collection_id(
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
-def test_composer_update_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
+def test_writer_update_by_collection_name(
+    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
-    composer.update(documents=[uuid4()], collection_name=test_collection_name)
+    writer.update(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
     request_mock.patch.assert_called_once()
 
 
 @patch("starpoint.db.requests")
-def test_composer_update_not_200(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_update_not_200(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.patch().ok = False
 
@@ -311,7 +311,7 @@ def test_composer_update_not_200(
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
-    actual_json = composer.update(
+    actual_json = writer.update(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
@@ -321,8 +321,8 @@ def test_composer_update_not_200(
 
 
 @patch("starpoint.db.requests")
-def test_composer_update_SSLError(
-    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
+def test_writer_update_SSLError(
+    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.patch.side_effect = SSLError("mock exception")
@@ -331,7 +331,7 @@ def test_composer_update_SSLError(
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
     with pytest.raises(SSLError, match="mock exception"):
-        composer.update(documents=[uuid4()], collection_name="mock_collection_name")
+        writer.update(documents=[uuid4()], collection_name="mock_collection_name")
 
     logger_mock.error.assert_called_once_with(db.SSL_ERROR_MSG)
 
@@ -402,7 +402,7 @@ def test_reader_query_not_200(
 
 
 @patch("starpoint.db.requests")
-def test_composer_query_SSLError(
+def test_writer_query_SSLError(
     request_mock: MagicMock, reader: db.Reader, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
@@ -419,54 +419,54 @@ def test_composer_query_SSLError(
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_default_init(mock_composer: MagicMock, mock_reader: MagicMock):
+def test_client_default_init(mock_writer: MagicMock, mock_reader: MagicMock):
     test_uuid = uuid4()
 
     client = db.Client(api_key=test_uuid)
 
-    mock_composer.assert_called_once_with(api_key=test_uuid, host=None)
+    mock_writer.assert_called_once_with(api_key=test_uuid, host=None)
     mock_reader.assert_called_once_with(api_key=test_uuid, host=None)
 
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_delete(mock_composer: MagicMock, mock_reader: MagicMock):
+def test_client_delete(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
     client.delete(documents=[uuid4()])
 
     mock_reader.assert_called_once()  # Only called during init
-    mock_composer().delete.assert_called_once()
+    mock_writer().delete.assert_called_once()
 
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_insert(mock_composer: MagicMock, mock_reader: MagicMock):
+def test_client_insert(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
     client.insert(documents=[{"mock": "value"}])
 
     mock_reader.assert_called_once()  # Only called during init
-    mock_composer().insert.assert_called_once()
+    mock_writer().insert.assert_called_once()
 
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_query(mock_composer: MagicMock, mock_reader: MagicMock):
+def test_client_query(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
     client.query()
 
-    mock_composer.assert_called_once()  # Only called during init
+    mock_writer.assert_called_once()  # Only called during init
     mock_reader().query.assert_called_once()
 
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_update(mock_composer: MagicMock, mock_reader: MagicMock):
+def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
     client.update(documents=[{"mock": "value"}])
 
     mock_reader.assert_called_once()  # Only called during init
-    mock_composer().update.assert_called_once()
+    mock_writer().update.assert_called_once()
