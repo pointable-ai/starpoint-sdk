@@ -1,7 +1,8 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import UUID
 
+import openai
 import requests
 import validators
 
@@ -24,6 +25,8 @@ NO_COLLECTION_VALUE_ERROR = (
 MULTI_COLLECTION_VALUE_ERROR = (
     "Please only provide either collection_id or collection_name in your request."
 )
+NO_API_KEY_VALUE_ERROR = "Please provide at least one value for either api_key or filepath where the api key lives."
+MULTI_API_KEY_VALUE_ERROR = "Please only provide either api_key or filepath with the api_key in your initialization."
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
 
 
@@ -331,6 +334,9 @@ class Client(object):
         self.writer = Writer(api_key=api_key, host=writer_host)
         self.reader = Reader(api_key=api_key, host=reader_host)
 
+        # Consider a wrapper around openai once this class gets bloated
+        self.openai = None
+
     def delete(
         self,
         documents: List[UUID],
@@ -392,3 +398,80 @@ class Client(object):
             collection_id=collection_id,
             collection_name=collection_name,
         )
+
+    """
+    OpenAI convinenance wrappers
+    """
+
+    def init_openai(
+        self,
+        openai_key: Optional[str] = None,
+        openai_key_filepath: Optional[str] = None,
+    ):
+        """Initializes openai functionality"""
+        self.openai = openai
+        # TODO: maybe do this for starpoint api_key also
+
+        # If the init is unsuccessful, we deinitialize openai from this object in the except
+        try:
+            if openai_key and openai_key_filepath:
+                raise ValueError(MULTI_API_KEY_VALUE_ERROR)
+            elif openai_key is None:
+                if openai_key_filepath is None:
+                    raise ValueError(NO_API_KEY_VALUE_ERROR)
+                self.openai.api_key_path = openai_key_filepath
+            else:
+                self.openai.api_key = openai_key
+        except ValueError as e:
+            self.openai = None
+            raise e
+
+    def build_and_update_embeddings_from_openai(
+        self,
+        model: str,
+        input: Union[str, Iterable],
+        document_metadatas: List[Dict],
+        openai_user: Optional[str] = None,
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ):
+        _check_collection_identifier_collision(collection_id, collection_name)
+        # TODO: should we check if input and document_metadata is the same length before embedding happens?
+
+        embedding_response = self.openai.Embedding.create(
+            model=model, input=input, user=openai_user
+        )
+        embedding_data = embedding_response.get("data")
+        if embedding_data is None:
+            LOGGER.warning("No embedding data found in the embedding response.")
+            return embedding_response
+
+        if len(embedding_data) != len(document_metadata):
+            LOGGER.warning(
+                "The length of the returned embeddings and document_metadata provided are different. There may be a mismatch "
+                "in input for embeddings and the expected document metadata length, which may cause undesired collection update."
+            )
+
+        # Return the embedding response no matter what issues/bugs we might run into in the sdk
+        try:
+            sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
+            embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
+            document = [
+                {
+                    "embedding": embedding,
+                    "metadata": document_metadata,
+                }
+                for embedding, document_metadata in zip(embeddings, document_metadatas)
+            ]
+
+            self.update(
+                document=document,
+                collection_id=collection_id,
+                collection_name=collection_name,
+            )
+        except Exception as e:
+            LOGGER.error(
+                f"An exception has occurred while trying to load embeddings. This is the error:\n{e}"
+            )
+
+        return embedding_response
