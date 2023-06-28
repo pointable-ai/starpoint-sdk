@@ -131,11 +131,11 @@ def api_uuid() -> UUID:
 
 @pytest.fixture(scope="session")
 @patch("starpoint.db._check_host_health")
-def composer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Composer:
-    return db.Composer(api_uuid)
+def composer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Writer:
+    return db.Writer(api_uuid)
 
 
-def test_composer_default_init(composer: db.Composer, api_uuid: UUID):
+def test_composer_default_init(composer: db.Writer, api_uuid: UUID):
     assert composer.host
     assert composer.host == db.COMPOSER_URL
     assert composer.api_key == api_uuid
@@ -143,7 +143,7 @@ def test_composer_default_init(composer: db.Composer, api_uuid: UUID):
 
 def test_composer_init_non_default_host(api_uuid: UUID):
     test_host = "http://www.example.com"
-    composer = db.Composer(api_key=api_uuid, host=test_host)
+    composer = db.Writer(api_key=api_uuid, host=test_host)
 
     assert composer.host
     assert composer.host == test_host
@@ -153,7 +153,7 @@ def test_composer_init_non_default_host(api_uuid: UUID):
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_delete_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_uuid = uuid4()
 
@@ -166,7 +166,7 @@ def test_composer_delete_by_collection_id(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_delete_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
@@ -178,7 +178,7 @@ def test_composer_delete_by_collection_name(
 
 @patch("starpoint.db.requests")
 def test_composer_delete_not_200(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.delete().ok = False
 
@@ -198,7 +198,7 @@ def test_composer_delete_not_200(
 
 @patch("starpoint.db.requests")
 def test_composer_delete_SSLError(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.delete.side_effect = SSLError("mock exception")
@@ -215,7 +215,7 @@ def test_composer_delete_SSLError(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_insert_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_uuid = uuid4()
 
@@ -228,7 +228,7 @@ def test_composer_insert_by_collection_id(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_insert_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
@@ -240,7 +240,7 @@ def test_composer_insert_by_collection_name(
 
 @patch("starpoint.db.requests")
 def test_composer_insert_not_200(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.post().ok = False
 
@@ -260,7 +260,7 @@ def test_composer_insert_not_200(
 
 @patch("starpoint.db.requests")
 def test_composer_insert_SSLError(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.post.side_effect = SSLError("mock exception")
@@ -277,7 +277,7 @@ def test_composer_insert_SSLError(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_update_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_uuid = uuid4()
 
@@ -290,7 +290,7 @@ def test_composer_update_by_collection_id(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_composer_update_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, composer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
@@ -302,7 +302,7 @@ def test_composer_update_by_collection_name(
 
 @patch("starpoint.db.requests")
 def test_composer_update_not_200(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.patch().ok = False
 
@@ -322,7 +322,7 @@ def test_composer_update_not_200(
 
 @patch("starpoint.db.requests")
 def test_composer_update_SSLError(
-    request_mock: MagicMock, composer: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, composer: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.exceptions.SSLError = SSLError
     request_mock.patch.side_effect = SSLError("mock exception")
@@ -360,7 +360,7 @@ def test_reader_init_non_default_host(api_uuid: UUID):
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_reader_query_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
 ):
     test_uuid = uuid4()
 
@@ -373,7 +373,7 @@ def test_reader_query_by_collection_id(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_reader_query_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Composer
+    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
@@ -385,7 +385,7 @@ def test_reader_query_by_collection_name(
 
 @patch("starpoint.db.requests")
 def test_reader_query_not_200(
-    request_mock: MagicMock, reader: db.Composer, monkeypatch: MonkeyPatch
+    request_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
 ):
     request_mock.post().ok = False
 
@@ -418,7 +418,7 @@ def test_composer_query_SSLError(
 
 
 @patch("starpoint.db.Reader")
-@patch("starpoint.db.Composer")
+@patch("starpoint.db.Writer")
 def test_client_default_init(mock_composer: MagicMock, mock_reader: MagicMock):
     test_uuid = uuid4()
 
@@ -429,7 +429,7 @@ def test_client_default_init(mock_composer: MagicMock, mock_reader: MagicMock):
 
 
 @patch("starpoint.db.Reader")
-@patch("starpoint.db.Composer")
+@patch("starpoint.db.Writer")
 def test_client_delete(mock_composer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -440,7 +440,7 @@ def test_client_delete(mock_composer: MagicMock, mock_reader: MagicMock):
 
 
 @patch("starpoint.db.Reader")
-@patch("starpoint.db.Composer")
+@patch("starpoint.db.Writer")
 def test_client_insert(mock_composer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -451,7 +451,7 @@ def test_client_insert(mock_composer: MagicMock, mock_reader: MagicMock):
 
 
 @patch("starpoint.db.Reader")
-@patch("starpoint.db.Composer")
+@patch("starpoint.db.Writer")
 def test_client_query(mock_composer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -462,7 +462,7 @@ def test_client_query(mock_composer: MagicMock, mock_reader: MagicMock):
 
 
 @patch("starpoint.db.Reader")
-@patch("starpoint.db.Composer")
+@patch("starpoint.db.Writer")
 def test_client_update(mock_composer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 

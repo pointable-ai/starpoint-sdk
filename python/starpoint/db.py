@@ -69,8 +69,8 @@ def _check_collection_identifier_collision(
         raise ValueError(MULTI_COLLECTION_VALUE_ERROR)
 
 
-class Composer(object):
-    """docstring for Composer"""
+class Writer(object):
+    """docstring for Writer"""
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
@@ -286,10 +286,10 @@ class Reader(object):
         self,
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict[any, any]: 
+    ) -> Dict[any, any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
-        
+
         """
         dict(
             collection_id="collection_id_example",
@@ -326,9 +326,9 @@ class Client(object):
         self,
         api_key: UUID,
         reader_host: Optional[str] = None,
-        composer_host: Optional[str] = None,
+        writer_host: Optional[str] = None,
     ):
-        self.composer = Composer(api_key=api_key, host=composer_host)
+        self.writer = Writer(api_key=api_key, host=writer_host)
         self.reader = Reader(api_key=api_key, host=reader_host)
 
     def delete(
@@ -337,7 +337,7 @@ class Client(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        return self.composer.delete(
+        return self.writer.delete(
             documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
@@ -349,7 +349,7 @@ class Client(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        return self.composer.insert(
+        return self.writer.insert(
             documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
@@ -387,7 +387,7 @@ class Client(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        return self.composer.update(
+        return self.writer.update(
             documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
