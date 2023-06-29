@@ -481,7 +481,8 @@ class Client(object):
             )
         except Exception as e:
             LOGGER.error(
-                f"An exception has occurred while trying to load embeddings. This is the error:\n{e}"
+                "An exception has occurred while trying to load embeddings into the db. "
+                f"This is the error:\n{e}"
             )
 
         return embedding_response
