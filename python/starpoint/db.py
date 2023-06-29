@@ -426,20 +426,19 @@ class Client(object):
             self.openai = None
             raise e
 
-    def build_and_update_embeddings_from_openai(
+    def build_and_insert_embeddings_from_openai(
         self,
         model: str,
-        input: Union[str, Iterable],
-        # Maybe make this optional and have input directly be put in as the document?
-        document_metadatas: List[Dict],
-        openai_user: Optional[str] = None,
+        input_data: Union[str, Iterable],
+        document_metadatas: Optional[List[Dict]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
+        openai_user: Optional[str] = None,
     ):
         _check_collection_identifier_collision(collection_id, collection_name)
 
         embedding_response = self.openai.Embedding.create(
-            model=model, input=input, user=openai_user
+            model=model, input=input_data, user=openai_user
         )
         embedding_data = embedding_response.get("data")
         if embedding_data is None:
@@ -448,7 +447,16 @@ class Client(object):
             )
             return embedding_response
 
-        if len(embedding_data) != len(document_metadatas):
+        if document_metadatas is None:
+            LOGGER.info(
+                "No custom document_metadatas provided. Using input_data for the document_metadatas"
+            )
+            if isinstance(input_data, str):
+                document_metadatas = [{"input": input_data}]
+            else:
+                document_metadatas = [{"input": input_data} for data in input_data]
+        # User provided custom document_metadatas
+        elif len(embedding_data) != len(document_metadatas):
             LOGGER.warning(
                 "The length of the returned embeddings and document_metadata provided are different. There may be a mismatch "
                 "in input for embeddings and the expected document metadata length, which may cause undesired collection update."
@@ -466,7 +474,7 @@ class Client(object):
                 for embedding, document_metadata in zip(embeddings, document_metadatas)
             ]
 
-            self.update(
+            self.insert(
                 document=document,
                 collection_id=collection_id,
                 collection_name=collection_name,
