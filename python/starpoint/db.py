@@ -437,7 +437,6 @@ class Client(object):
         collection_name: Optional[str] = None,
     ):
         _check_collection_identifier_collision(collection_id, collection_name)
-        # TODO: should we check if input and document_metadata is the same length before embedding happens?
 
         embedding_response = self.openai.Embedding.create(
             model=model, input=input, user=openai_user
