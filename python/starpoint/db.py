@@ -443,10 +443,12 @@ class Client(object):
         )
         embedding_data = embedding_response.get("data")
         if embedding_data is None:
-            LOGGER.warning("No embedding data found in the embedding response.")
+            LOGGER.warning(
+                "No embedding data found in the embedding response from OpenAI."
+            )
             return embedding_response
 
-        if len(embedding_data) != len(document_metadata):
+        if len(embedding_data) != len(document_metadatas):
             LOGGER.warning(
                 "The length of the returned embeddings and document_metadata provided are different. There may be a mismatch "
                 "in input for embeddings and the expected document metadata length, which may cause undesired collection update."
