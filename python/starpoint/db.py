@@ -430,6 +430,7 @@ class Client(object):
         self,
         model: str,
         input: Union[str, Iterable],
+        # Maybe make this optional and have input directly be put in as the document?
         document_metadatas: List[Dict],
         openai_user: Optional[str] = None,
         collection_id: Optional[UUID] = None,
