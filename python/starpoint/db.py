@@ -434,12 +434,19 @@ class Client(object):
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
-    ):
+    ) -> Dict:
+        if self.openai is None:
+            raise RuntimeError(
+                "OpenAI instance has not been initialized. Please initialize it using "
+                "Client.init_openai()"
+            )
+
         _check_collection_identifier_collision(collection_id, collection_name)
 
         embedding_response = self.openai.Embedding.create(
             model=model, input=input_data, user=openai_user
         )
+
         embedding_data = embedding_response.get("data")
         if embedding_data is None:
             LOGGER.warning(
