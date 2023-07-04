@@ -400,7 +400,7 @@ class Client(object):
         )
 
     """
-    OpenAI convinenance wrappers
+    OpenAI convenience wrappers
     """
 
     def init_openai(
