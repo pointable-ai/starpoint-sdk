@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Union
 from uuid import UUID
 
 import openai
@@ -419,6 +419,7 @@ class Client(object):
             elif openai_key is None:
                 if openai_key_filepath is None:
                     raise ValueError(NO_API_KEY_VALUE_ERROR)
+                # TODO: openapi does not check whether path or file exists, so we should check for user
                 self.openai.api_key_path = openai_key_filepath
             else:
                 self.openai.api_key = openai_key
