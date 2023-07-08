@@ -5,7 +5,7 @@ const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
 const INFER_SCHEMA_PATH = "/api/v1/infer_schema";
 
-const COMPOSER_URL = "https://composer.starpoint.ai";
+const WRITER_URL = "https://writer.starpoint.ai";
 const READER_URL = "https://reader.starpoint.ai";
 const API_KEY_HEADER_NAME = "x-starpoint-key";
 
@@ -36,16 +36,28 @@ const _setAndValidateHost = (host: string) => {
 };
 
 function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
-  if ('collection_id' in request && 'collection_name' in request) {
-    throw new Error("Request has too many identifiers. Either pass in collection_id or collection_name, not both");
+  if ("collection_id" in request && "collection_name" in request) {
+    throw new Error(
+      "Request has too many identifiers. Either pass in collection_id or collection_name, not both"
+    );
   }
-  if (!('collection_id' in request) && !('collection_name' in request)) {
-    throw new Error("Did not specify id or name identifier for collection in request");
+  if (!("collection_id" in request) && !("collection_name" in request)) {
+    throw new Error(
+      "Did not specify id or name identifier for collection in request"
+    );
   }
-  if (!('collection_id' in request) && 'collection_name' in request && !request.collection_name) {
+  if (
+    !("collection_id" in request) &&
+    "collection_name" in request &&
+    !request.collection_name
+  ) {
     throw new Error("Name identifier cannot be null for collection in request");
   }
-  if (!('collection_name' in request) && 'collection_id' in request && !request.collection_id) {
+  if (
+    !("collection_name" in request) &&
+    "collection_id" in request &&
+    !request.collection_id
+  ) {
     throw new Error("Id cannot be null for collection in request");
   }
 }
@@ -63,15 +75,13 @@ function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
 
 const initialize = (
   apiKey: string,
-  composerHostURL?: string,
+  writerHostURL?: string,
   readerHostURL?: string
 ) => {
   axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
 
-  const composerClient = axios.create({
-    baseURL: composerHostURL
-      ? _setAndValidateHost(composerHostURL)
-      : COMPOSER_URL,
+  const writerClient = axios.create({
+    baseURL: writerHostURL ? _setAndValidateHost(writerHostURL) : WRITER_URL,
   });
 
   const readerClient = axios.create({
@@ -92,7 +102,7 @@ const initialize = (
         throw new Error("One of the embeddings for a document contains an invalid number");
       }
       // make api call
-      const response = await composerClient.post<InsertResponse>(
+      const response = await writerClient.post<InsertResponse>(
         DOCUMENTS_PATH,
         request
       );
@@ -118,33 +128,43 @@ const initialize = (
     insert: _insertDocument,
     update: async (request: UpdateRequest) => {
       try {
-         // sanitize request
-         _sanitizeCollectionIdentifiersInRequest(request)
-         if (!request.documents) {
-           throw new Error("Did not specify documents to update in request");
-         }
-         if (request.documents && request.documents.some((document) => !document.id)) {
-           throw new Error("Did not specify an id for a document in the request")
-         }
-         if (request.documents && request.documents.some((document) => !document.metadata)) {
-          throw new Error("Did not specify metadata for a document in the request")
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request);
+        if (!request.documents) {
+          throw new Error("Did not specify documents to update in request");
         }
-         // make api call
-        const response = await composerClient.patch<UpdateResponse>(
+        if (
+          request.documents &&
+          request.documents.some((document) => !document.id)
+        ) {
+          throw new Error(
+            "Did not specify an id for a document in the request"
+          );
+        }
+        if (
+          request.documents &&
+          request.documents.some((document) => !document.metadata)
+        ) {
+          throw new Error(
+            "Did not specify metadata for a document in the request"
+          );
+        }
+        // make api call
+        const response = await writerClient.patch<UpdateResponse>(
           DOCUMENTS_PATH,
           request
         );
         const result: APIResult<UpdateResponse, ErrorResponse> = {
           data: response.data,
-          error: null
-        }
+          error: null,
+        };
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<UpdateResponse, ErrorResponse> = {
             data: null,
-            error: err?.response?.data
-          }
+            error: err?.response?.data,
+          };
           return result;
         } else {
           throw new Error("different error than axios");
@@ -153,13 +173,13 @@ const initialize = (
     },
     delete: async (request: DeleteRequest) => {
       try {
-         // sanitize request
-         _sanitizeCollectionIdentifiersInRequest(request)
-         if (!request.ids) {
-           throw new Error("Did not specify documents to delete in request");
-         }
-         // make api call
-        const response = await composerClient.delete<DeleteResponse>(
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request);
+        if (!request.ids) {
+          throw new Error("Did not specify documents to delete in request");
+        }
+        // make api call
+        const response = await writerClient.delete<DeleteResponse>(
           DOCUMENTS_PATH,
           {
             data: request,
@@ -167,15 +187,15 @@ const initialize = (
         );
         const result: APIResult<DeleteResponse, ErrorResponse> = {
           data: response.data,
-          error: null
-        }
+          error: null,
+        };
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<DeleteResponse, ErrorResponse> = {
             data: null,
-            error: err?.response?.data
-          }
+            error: err?.response?.data,
+          };
           return result;
         } else {
           throw new Error("different error than axios");
@@ -184,27 +204,34 @@ const initialize = (
     },
     query: async (request: QueryRequest) => {
       try {
-         // sanitize request
-         _sanitizeCollectionIdentifiersInRequest(request)
-        if (request.query_embedding && request.query_embedding.some((embedding) => typeof embedding !== "number")){
-          throw new Error("One of the embeddings in the request is not a valid number");
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request);
+        if (
+          request.query_embedding &&
+          request.query_embedding.some(
+            (embedding) => typeof embedding !== "number"
+          )
+        ) {
+          throw new Error(
+            "One of the embeddings in the request is not a valid number"
+          );
         }
-         // make api call
+        // make api call
         const response = await readerClient.post<QueryResponse>(
           QUERY_PATH,
           request
         );
         const result: APIResult<QueryResponse, ErrorResponse> = {
           data: response.data,
-          error: null
-        }
+          error: null,
+        };
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<QueryResponse, ErrorResponse> = {
             data: null,
-            error: err?.response?.data
-          }
+            error: err?.response?.data,
+          };
           return result;
         } else {
           throw new Error("different error than axios");
@@ -214,7 +241,7 @@ const initialize = (
     inferSchema: async (request: InferSchemaRequest) => {
       try {
         // sanitize request
-        _sanitizeCollectionIdentifiersInRequest(request)
+        _sanitizeCollectionIdentifiersInRequest(request);
         // make api call
         const response = await readerClient.post<InferSchemaResponse>(
           INFER_SCHEMA_PATH,
@@ -222,15 +249,15 @@ const initialize = (
         );
         const result: APIResult<InferSchemaResponse, ErrorResponse> = {
           data: response.data,
-          error: null
-        }
+          error: null,
+        };
         return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<InferSchemaResponse, ErrorResponse> = {
             data: null,
-            error: err?.response?.data
-          }
+            error: err?.response?.data,
+          };
           return result;
         } else {
           throw new Error("different error than axios");
@@ -339,8 +366,8 @@ export interface QueryResponse {
   result_count: number;
   sql?: string | undefined | null;
   results: {
-    "__id": string;
-    "__distance": number;
+    __id: string;
+    __distance: number;
     [key: string]: string | number | undefined | null;
   }[];
 }
@@ -354,14 +381,14 @@ export enum InferredType {
   Object,
 }
 interface InferredSchema {
-  types: Record<string, InferredType[]>
-  nullability: Record<string, boolean>
+  types: Record<string, InferredType[]>;
+  nullability: Record<string, boolean>;
 }
 
 export type InferSchemaRequest = ByWrapper<{}>;
 
 export interface InferSchemaResponse {
-  inferred_schema: InferredSchema
+  inferred_schema: InferredSchema;
 }
 
 interface ByCollectionName {
@@ -385,7 +412,7 @@ interface Value {
 }
 
 export interface ErrorResponse {
-  error_message: string
+  error_message: string;
 }
 
 export interface APIResult<T, ErrorResponse> {
