@@ -62,6 +62,17 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
   }
 }
 
+function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
+  const length = Math.min(listA.length, listB.length);
+
+  return Array(length).map(
+    (_pair, index) => {
+      return [listA[index], listB[index]]
+    }
+  )
+
+}
+
 const initialize = (
   apiKey: string,
   writerHostURL?: string,
@@ -77,56 +88,44 @@ const initialize = (
     baseURL: readerHostURL ? _setAndValidateHost(readerHostURL) : READER_URL,
   });
 
-  return {
-    insert: async (request: InsertRequest) => {
-      try {
-        // sanitize request
-        _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.documents) {
-          throw new Error(
-            "Did not specify documents to insert into collection in request"
-          );
-        }
-        if (
-          request.documents &&
-          request.documents.some((document) => !document.embedding)
-        ) {
-          throw new Error(
-            "Did not specify an embedding for a document in the request"
-          );
-        }
-        if (
-          request.documents &&
-          request.documents.some(
-            (document) => typeof document.embedding !== "number"
-          )
-        ) {
-          throw new Error(
-            "One of the embeddings for a document contains an invalid number"
-          );
-        }
-        // make api call
-        const response = await writerClient.post<InsertResponse>(
-          DOCUMENTS_PATH,
-          request
-        );
-        const result: APIResult<InsertResponse, ErrorResponse> = {
-          data: response.data,
-          error: null,
-        };
-        return result;
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          const result: APIResult<InsertResponse, ErrorResponse> = {
-            data: null,
-            error: err?.response?.data,
-          };
-          return result;
-        } else {
-          throw err;
-        }
+  const _insertDocument = async (request: InsertRequest) => {
+    try {
+      // sanitize request
+      _sanitizeCollectionIdentifiersInRequest(request)
+      if (!request.documents) {
+        throw new Error("Did not specify documents to insert into collection in request");
       }
-    },
+      if (request.documents && request.documents.some((document) => !document.embedding )) {
+        throw new Error("Did not specify an embedding for a document in the request")
+      }
+      if (request.documents && request.documents.some((document) => typeof document.embedding !== "number")){
+        throw new Error("One of the embeddings for a document contains an invalid number");
+      }
+      // make api call
+      const response = await writerClient.post<InsertResponse>(
+        DOCUMENTS_PATH,
+        request
+      );
+      const result: APIResult<InsertResponse, ErrorResponse> = {
+        data: response.data,
+        error: null
+      }
+      return result;
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const result: APIResult<InsertResponse, ErrorResponse> = {
+          data: null,
+          error: err?.response?.data
+        }
+        return result;
+      } else {
+        throw err
+      }
+    }
+  }
+
+  return {
+    insert: _insertDocument,
     update: async (request: UpdateRequest) => {
       try {
         // sanitize request
@@ -265,24 +264,71 @@ const initialize = (
         }
       }
     },
+    columnInsert: async (request: TransposeAndInsertRequest) => {
+      try {
+        // sanitize request
+        _sanitizeCollectionIdentifiersInRequest(request);
+
+        // transpose metadata and embeddings 
+        const { embeddings, documentMetadata, ...rest } = request;
+        const columns = _zip(embeddings, documentMetadata)
+        const documents: Document[] = columns.map((column) => {
+          
+          const [embedding, metadata] = column;
+
+          return {
+            embedding,
+            metadata
+          }
+        })
+
+        const insertRequest: InsertRequest = {
+          ...rest,
+          documents
+        }
+
+        return _insertDocument(insertRequest)
+
+      }
+      catch (err) {
+        if (axios.isAxiosError(err)) {
+          const result: APIResult<TransposeAndInsertResponse, ErrorResponse> = {
+            data: null,
+            error: err?.response?.data
+          }
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
+    },
   };
 };
 
-export default initialize;
+export const db = {
+  initialize
+}
 
 // INSERT TYPES
-interface InsertDocumentsDocument {
+interface Document {
   embedding: number[];
   metadata?: Metadata;
 }
 
 interface InsertDocuments {
-  documents: InsertDocumentsDocument[];
+  documents: Document[];
 }
 
 export type InsertRequest = ByWrapper<InsertDocuments>;
 
 export interface InsertResponse {
+  collection_id: string;
+  documents: { id: string };
+}
+
+export type TransposeAndInsertRequest = ByWrapper<{embeddings: number[][], documentMetadata: Metadata[]}>;
+
+export interface TransposeAndInsertResponse {
   collection_id: string;
   documents: { id: string };
 }
