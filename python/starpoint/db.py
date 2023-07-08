@@ -28,6 +28,10 @@ MULTI_COLLECTION_VALUE_ERROR = (
 NO_API_KEY_VALUE_ERROR = "Please provide at least one value for either api_key or filepath where the api key lives."
 MULTI_API_KEY_VALUE_ERROR = "Please only provide either api_key or filepath with the api_key in your initialization."
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
+EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
+    "The length of the embeddings and document_metadata provided are different. There may be a mismatch "
+    "between embeddings and the expected document metadata length; this may cause undesired collection insert or update."
+)
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -175,6 +179,30 @@ class Writer(object):
             )
             return {}
         return response.json()
+
+    def transpose_and_insert(
+        self,
+        embeddings: List[float],
+        document_metadatas: List[Dict[Any, Any]],
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        if len(embeddings) != len(document_metadatas):
+            LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
+
+        document = [
+            {
+                "embedding": embedding,
+                "metadata": document_metadata,
+            }
+            for embedding, document_metadata in zip(embeddings, document_metadatas)
+        ]
+
+        self.insert(
+            document=document,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
 
     def update(
         self,
@@ -361,6 +389,20 @@ class Client(object):
             collection_name=collection_name,
         )
 
+    def transpose_and_insert(
+        self,
+        embeddings: List[float],
+        document_metadata: List[Dict[Any, Any]],
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        return self.writer.transpose_and_insert(
+            embeddings=embeddings,
+            document_metadatas=document_metadatas,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
+
     def query(
         self,
         sql: Optional[str] = None,
@@ -465,25 +507,15 @@ class Client(object):
                 document_metadatas = [{"input": input_data} for data in input_data]
         # User provided custom document_metadatas
         elif len(embedding_data) != len(document_metadatas):
-            LOGGER.warning(
-                "The length of the returned embeddings and document_metadata provided are different. There may be a mismatch "
-                "in input for embeddings and the expected document metadata length, which may cause undesired collection update."
-            )
+            LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
         # Return the embedding response no matter what issues/bugs we might run into in the sdk
         try:
             sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
             embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
-            document = [
-                {
-                    "embedding": embedding,
-                    "metadata": document_metadata,
-                }
-                for embedding, document_metadata in zip(embeddings, document_metadatas)
-            ]
-
-            self.insert(
-                document=document,
+            self.transpose_and_insert(
+                embeddings=embeddings,
+                document_metadatas=document_metadatas,
                 collection_id=collection_id,
                 collection_name=collection_name,
             )
