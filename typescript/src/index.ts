@@ -305,7 +305,9 @@ const initialize = (
   };
 };
 
-export default initialize;
+export const db = {
+  initialize
+}
 
 // INSERT TYPES
 interface Document {
