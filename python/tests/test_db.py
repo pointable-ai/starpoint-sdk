@@ -591,6 +591,17 @@ def test_client_query(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
+def test_client_infer_schema(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.infer_schema()
+
+    mock_writer.assert_called_once()  # Only called during init
+    mock_reader().infer_schema.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
 def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -615,7 +626,7 @@ def test_client_init_openai_no_api_value(
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_init_openai_no_api_value(
+def test_client_init_openai_both_api_value(
     mock_writer: MagicMock, mock_reader: MagicMock
 ):
     client = db.Client(api_key=uuid4())
