@@ -508,9 +508,6 @@ class Client(object):
                 document_metadatas = [{"input": input_data}]
             else:
                 document_metadatas = [{"input": input_data} for data in input_data]
-        # User provided custom document_metadatas
-        elif len(embedding_data) != len(document_metadatas):
-            LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
         # Return the embedding response no matter what issues/bugs we might run into in the sdk
         try:
