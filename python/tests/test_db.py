@@ -799,3 +799,43 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
     collision_mock.assert_called_once()
     mock_writer().transpose_and_insert.assert_not_called()
     logger_mock.warning.assert_called_once_with(db.NO_EMBEDDING_DATA_FOUND)
+
+
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    collision_mock: MagicMock,
+    monkeypatch: MonkeyPatch,
+):
+    client = db.Client(api_key=uuid4())
+    openai_mock = MagicMock()
+    client.openai = openai_mock
+
+    expected_embedding_response = {
+        "data": [
+            {
+                "embedding": 0.77,
+                "index": 0,
+            }
+        ]
+    }
+    openai_mock.Embedding.create.return_value = expected_embedding_response
+
+    mock_writer().transpose_and_insert.side_effect = RuntimeError("Test Exception")
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    mock_input = "mock_input"
+    mock_model = "mock-model"
+
+    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+        model=mock_model, input_data=mock_input
+    )
+
+    assert actual_embedding_response == expected_embedding_response
+    collision_mock.assert_called_once()
+    logger_mock.error.assert_called_once()
