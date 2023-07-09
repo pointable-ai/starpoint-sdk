@@ -34,6 +34,9 @@ EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
     "The length of the embeddings and document_metadata provided are different. There may be a mismatch "
     "between embeddings and the expected document metadata length; this may cause undesired collection insert or update."
 )
+NO_EMBEDDING_DATA_FOUND = (
+    "No embedding data found in the embedding response from OpenAI."
+)
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -495,9 +498,7 @@ class Client(object):
 
         embedding_data = embedding_response.get("data")
         if embedding_data is None:
-            LOGGER.warning(
-                "No embedding data found in the embedding response from OpenAI."
-            )
+            LOGGER.warning(NO_EMBEDDING_DATA_FOUND)
             return embedding_response
 
         if document_metadatas is None:
@@ -507,7 +508,7 @@ class Client(object):
             if isinstance(input_data, str):
                 document_metadatas = [{"input": input_data}]
             else:
-                document_metadatas = [{"input": input_data} for data in input_data]
+                document_metadatas = [{"input": data} for data in input_data]
 
         # Return the embedding response no matter what issues/bugs we might run into in the sdk
         try:
