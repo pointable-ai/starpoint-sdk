@@ -394,7 +394,7 @@ class Client(object):
     def transpose_and_insert(
         self,
         embeddings: List[float],
-        document_metadata: List[Dict[Any, Any]],
+        document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:

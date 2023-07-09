@@ -453,6 +453,17 @@ def test_client_insert(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
+def test_client_transpose_and_insert(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.transpose_and_insert(embeddings=[1.1], document_metadatas={"mock": "value"})
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_writer().transpose_and_insert.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
 def test_client_query(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
