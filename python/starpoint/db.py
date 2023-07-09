@@ -476,7 +476,7 @@ class Client(object):
         self,
         model: str,
         input_data: Union[str, Iterable],
-        document_metadatas: Optional[List[Dict]],
+        document_metadatas: Optional[List[Dict]] = None,
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
