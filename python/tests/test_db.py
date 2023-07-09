@@ -519,6 +519,24 @@ def test_reader_query_not_200(
 
 
 @patch("starpoint.db.requests")
+def test_reader_infer_schema_not_200(
+    requests_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
+):
+    requests_mock.post().ok = False
+
+    expected_json = {}
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    actual_json = reader.infer_schema(collection_name="mock_collection_name")
+
+    requests_mock.post.assert_called()
+    logger_mock.error.assert_called_once()
+    assert actual_json == expected_json
+
+
+@patch("starpoint.db.requests")
 def test_writer_query_SSLError(
     requests_mock: MagicMock, reader: db.Reader, monkeypatch: MonkeyPatch
 ):
