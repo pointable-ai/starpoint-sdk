@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
 from uuid import UUID
 
@@ -27,6 +28,7 @@ MULTI_COLLECTION_VALUE_ERROR = (
 )
 NO_API_KEY_VALUE_ERROR = "Please provide at least one value for either api_key or filepath where the api key lives."
 MULTI_API_KEY_VALUE_ERROR = "Please only provide either api_key or filepath with the api_key in your initialization."
+NO_API_KEY_FILE_ERROR = "The provided filepath for the API key is not a valid file."
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
 EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
     "The length of the embeddings and document_metadata provided are different. There may be a mismatch "
@@ -461,7 +463,8 @@ class Client(object):
             elif openai_key is None:
                 if openai_key_filepath is None:
                     raise ValueError(NO_API_KEY_VALUE_ERROR)
-                # TODO: openapi does not check whether path or file exists, so we should check for user
+                if not Path(openai_key_filepath).is_file():
+                    raise ValueError(NO_API_KEY_FILE_ERROR)
                 self.openai.api_key_path = openai_key_filepath
             else:
                 self.openai.api_key = openai_key

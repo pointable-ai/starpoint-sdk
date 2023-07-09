@@ -1,3 +1,4 @@
+from tempfile import NamedTemporaryFile
 from uuid import UUID, uuid4
 from unittest.mock import MagicMock, patch
 
@@ -517,10 +518,23 @@ def test_client_init_openai_with_api_key(
 def test_client_init_openai_with_api_path(
     mock_writer: MagicMock, mock_reader: MagicMock
 ):
+    temp_file = NamedTemporaryFile()
+
+    client = db.Client(api_key=uuid4())
+    client.init_openai(openai_key_filepath=temp_file.name)
+
+    assert client.openai.api_key_path == temp_file.name
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_with_bad_api_path(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
     mock_api_key_path = "1234~/path"
 
     client = db.Client(api_key=uuid4())
+    with pytest.raises(ValueError, match=db.NO_API_KEY_FILE_ERROR):
+        client.init_openai(openai_key_filepath=mock_api_key_path)
 
-    client.init_openai(openai_key_filepath=mock_api_key_path)
-
-    assert client.openai.api_key_path == mock_api_key_path
+    assert client.openai is None
