@@ -1,3 +1,4 @@
+from typing import Tuple
 from tempfile import NamedTemporaryFile
 from uuid import UUID, uuid4
 from unittest.mock import MagicMock, patch
@@ -273,6 +274,121 @@ def test_writer_insert_SSLError(
         writer.insert(documents=[uuid4()], collection_name="mock_collection_name")
 
     logger_mock.error.assert_called_once_with(db.SSL_ERROR_MSG)
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert(insert_mock: MagicMock, writer: db.Writer):
+    test_embeddings = [0.88, 0.71]
+    test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+        {
+            "embedding": test_embeddings[1],
+            "metadata": test_document_metadatas[1],
+        },
+    ]
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_collection_id_collection_name_passed_through(
+    insert_mock: MagicMock, writer: db.Writer
+):
+    test_embeddings = [0.88]
+    test_document_metadatas = [{"mock": "metadata"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+    expected_collection_id = "mock_id"
+    expected_collection_name = "mock_name"
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings,
+        document_metadatas=test_document_metadatas,
+        collection_id=expected_collection_id,
+        collection_name=expected_collection_name,
+    )
+
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=expected_collection_id,
+        collection_name=expected_collection_name,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_shorter_metadatas_length(
+    insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+):
+    test_embeddings = [0.88, 0.71]
+    test_document_metadatas = [{"mock": "metadata"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    logger_mock.warning.assert_called_once_with(
+        db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
+    )
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_shorter_embeddings_length(
+    insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+):
+    test_embeddings = [0.88]
+    test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    logger_mock.warning.assert_called_once_with(
+        db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
+    )
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
