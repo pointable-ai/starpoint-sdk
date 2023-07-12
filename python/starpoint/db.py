@@ -1,7 +1,9 @@
 import logging
-from typing import Any, Dict, List, Optional
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Union
 from uuid import UUID
 
+import openai
 import requests
 import validators
 
@@ -24,7 +26,17 @@ NO_COLLECTION_VALUE_ERROR = (
 MULTI_COLLECTION_VALUE_ERROR = (
     "Please only provide either collection_id or collection_name in your request."
 )
+NO_API_KEY_VALUE_ERROR = "Please provide at least one value for either api_key or filepath where the api key lives."
+MULTI_API_KEY_VALUE_ERROR = "Please only provide either api_key or filepath with the api_key in your initialization."
+NO_API_KEY_FILE_ERROR = "The provided filepath for the API key is not a valid file."
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
+EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
+    "The length of the embeddings and document_metadata provided are different. There may be a mismatch "
+    "between embeddings and the expected document metadata length; this may cause undesired collection insert or update."
+)
+NO_EMBEDDING_DATA_FOUND = (
+    "No embedding data found in the embedding response from OpenAI."
+)
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -172,6 +184,30 @@ class Writer(object):
             )
             return {}
         return response.json()
+
+    def transpose_and_insert(
+        self,
+        embeddings: List[float],
+        document_metadatas: List[Dict[Any, Any]],
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        if len(embeddings) != len(document_metadatas):
+            LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
+
+        document = [
+            {
+                "embedding": embedding,
+                "metadata": document_metadata,
+            }
+            for embedding, document_metadata in zip(embeddings, document_metadatas)
+        ]
+
+        self.insert(
+            document=document,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
 
     def update(
         self,
@@ -331,6 +367,9 @@ class Client(object):
         self.writer = Writer(api_key=api_key, host=writer_host)
         self.reader = Reader(api_key=api_key, host=reader_host)
 
+        # Consider a wrapper around openai once this class gets bloated
+        self.openai = None
+
     def delete(
         self,
         documents: List[UUID],
@@ -351,6 +390,20 @@ class Client(object):
     ) -> Dict[Any, Any]:
         return self.writer.insert(
             documents=documents,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
+
+    def transpose_and_insert(
+        self,
+        embeddings: List[float],
+        document_metadatas: List[Dict[Any, Any]],
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        return self.writer.transpose_and_insert(
+            embeddings=embeddings,
+            document_metadatas=document_metadatas,
             collection_id=collection_id,
             collection_name=collection_name,
         )
@@ -392,3 +445,85 @@ class Client(object):
             collection_id=collection_id,
             collection_name=collection_name,
         )
+
+    """
+    OpenAI convenience wrappers
+    """
+
+    def init_openai(
+        self,
+        openai_key: Optional[str] = None,
+        openai_key_filepath: Optional[str] = None,
+    ):
+        """Initializes openai functionality"""
+        self.openai = openai
+        # TODO: maybe do this for starpoint api_key also
+
+        # If the init is unsuccessful, we deinitialize openai from this object in the except
+        try:
+            if openai_key and openai_key_filepath:
+                raise ValueError(MULTI_API_KEY_VALUE_ERROR)
+            elif openai_key is None:
+                if openai_key_filepath is None:
+                    raise ValueError(NO_API_KEY_VALUE_ERROR)
+                if not Path(openai_key_filepath).is_file():
+                    raise ValueError(NO_API_KEY_FILE_ERROR)
+                self.openai.api_key_path = openai_key_filepath
+            else:
+                self.openai.api_key = openai_key
+        except ValueError as e:
+            self.openai = None
+            raise e
+
+    def build_and_insert_embeddings_from_openai(
+        self,
+        model: str,
+        input_data: Union[str, Iterable],
+        document_metadatas: Optional[List[Dict]] = None,
+        collection_id: Optional[UUID] = None,
+        collection_name: Optional[str] = None,
+        openai_user: Optional[str] = None,
+    ) -> Dict:
+        if self.openai is None:
+            raise RuntimeError(
+                "OpenAI instance has not been initialized. Please initialize it using "
+                "Client.init_openai()"
+            )
+
+        _check_collection_identifier_collision(collection_id, collection_name)
+
+        embedding_response = self.openai.Embedding.create(
+            model=model, input=input_data, user=openai_user
+        )
+
+        embedding_data = embedding_response.get("data")
+        if embedding_data is None:
+            LOGGER.warning(NO_EMBEDDING_DATA_FOUND)
+            return embedding_response
+
+        if document_metadatas is None:
+            LOGGER.info(
+                "No custom document_metadatas provided. Using input_data for the document_metadatas"
+            )
+            if isinstance(input_data, str):
+                document_metadatas = [{"input": input_data}]
+            else:
+                document_metadatas = [{"input": data} for data in input_data]
+
+        # Return the embedding response no matter what issues/bugs we might run into in the sdk
+        try:
+            sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
+            embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
+            self.transpose_and_insert(
+                embeddings=embeddings,
+                document_metadatas=document_metadatas,
+                collection_id=collection_id,
+                collection_name=collection_name,
+            )
+        except Exception as e:
+            LOGGER.error(
+                "An exception has occurred while trying to load embeddings into the db. "
+                f"This is the error:\n{e}"
+            )
+
+        return embedding_response

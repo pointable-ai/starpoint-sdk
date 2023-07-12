@@ -1,3 +1,5 @@
+from typing import Tuple
+from tempfile import NamedTemporaryFile
 from uuid import UUID, uuid4
 from unittest.mock import MagicMock, patch
 
@@ -153,34 +155,34 @@ def test_writer_init_non_default_host(api_uuid: UUID):
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_delete_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
     writer.delete(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
-    request_mock.delete.assert_called_once()
+    requests_mock.delete.assert_called_once()
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_delete_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
     writer.delete(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
-    request_mock.delete.assert_called_once()
+    requests_mock.delete.assert_called_once()
 
 
 @patch("starpoint.db.requests")
 def test_writer_delete_not_200(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.delete().ok = False
+    requests_mock.delete().ok = False
 
     expected_json = {}
 
@@ -191,17 +193,17 @@ def test_writer_delete_not_200(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
-    request_mock.delete.assert_called()
+    requests_mock.delete.assert_called()
     logger_mock.error.assert_called_once()
     assert actual_json == expected_json
 
 
 @patch("starpoint.db.requests")
 def test_writer_delete_SSLError(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.exceptions.SSLError = SSLError
-    request_mock.delete.side_effect = SSLError("mock exception")
+    requests_mock.exceptions.SSLError = SSLError
+    requests_mock.delete.side_effect = SSLError("mock exception")
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -215,34 +217,34 @@ def test_writer_delete_SSLError(
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_insert_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
     writer.insert(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
-    request_mock.post.assert_called_once()
+    requests_mock.post.assert_called_once()
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_insert_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
     writer.insert(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
-    request_mock.post.assert_called_once()
+    requests_mock.post.assert_called_once()
 
 
 @patch("starpoint.db.requests")
 def test_writer_insert_not_200(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.post().ok = False
+    requests_mock.post().ok = False
 
     expected_json = {}
 
@@ -253,17 +255,17 @@ def test_writer_insert_not_200(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
-    request_mock.post.assert_called()
+    requests_mock.post.assert_called()
     logger_mock.error.assert_called_once()
     assert actual_json == expected_json
 
 
 @patch("starpoint.db.requests")
 def test_writer_insert_SSLError(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.exceptions.SSLError = SSLError
-    request_mock.post.side_effect = SSLError("mock exception")
+    requests_mock.exceptions.SSLError = SSLError
+    requests_mock.post.side_effect = SSLError("mock exception")
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -274,37 +276,152 @@ def test_writer_insert_SSLError(
     logger_mock.error.assert_called_once_with(db.SSL_ERROR_MSG)
 
 
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert(insert_mock: MagicMock, writer: db.Writer):
+    test_embeddings = [0.88, 0.71]
+    test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+        {
+            "embedding": test_embeddings[1],
+            "metadata": test_document_metadatas[1],
+        },
+    ]
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_collection_id_collection_name_passed_through(
+    insert_mock: MagicMock, writer: db.Writer
+):
+    test_embeddings = [0.88]
+    test_document_metadatas = [{"mock": "metadata"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+    expected_collection_id = "mock_id"
+    expected_collection_name = "mock_name"
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings,
+        document_metadatas=test_document_metadatas,
+        collection_id=expected_collection_id,
+        collection_name=expected_collection_name,
+    )
+
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=expected_collection_id,
+        collection_name=expected_collection_name,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_shorter_metadatas_length(
+    insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+):
+    test_embeddings = [0.88, 0.71]
+    test_document_metadatas = [{"mock": "metadata"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    logger_mock.warning.assert_called_once_with(
+        db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
+    )
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
+
+
+@patch("starpoint.db.Writer.insert")
+def test_writer_transpose_and_insert_shorter_embeddings_length(
+    insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+):
+    test_embeddings = [0.88]
+    test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
+    expected_insert_document = [
+        {
+            "embedding": test_embeddings[0],
+            "metadata": test_document_metadatas[0],
+        },
+    ]
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    writer.transpose_and_insert(
+        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+    )
+
+    logger_mock.warning.assert_called_once_with(
+        db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
+    )
+    insert_mock.assert_called_once_with(
+        document=expected_insert_document,
+        collection_id=None,
+        collection_name=None,
+    )
+
+
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_update_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_uuid = uuid4()
 
     writer.update(documents=[uuid4()], collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
-    request_mock.patch.assert_called_once()
+    requests_mock.patch.assert_called_once()
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_writer_update_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, writer: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
     writer.update(documents=[uuid4()], collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
-    request_mock.patch.assert_called_once()
+    requests_mock.patch.assert_called_once()
 
 
 @patch("starpoint.db.requests")
 def test_writer_update_not_200(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.patch().ok = False
+    requests_mock.patch().ok = False
 
     expected_json = {}
 
@@ -315,17 +432,17 @@ def test_writer_update_not_200(
         documents=[uuid4()], collection_name="mock_collection_name"
     )
 
-    request_mock.patch.assert_called()
+    requests_mock.patch.assert_called()
     logger_mock.error.assert_called_once()
     assert actual_json == expected_json
 
 
 @patch("starpoint.db.requests")
 def test_writer_update_SSLError(
-    request_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.exceptions.SSLError = SSLError
-    request_mock.patch.side_effect = SSLError("mock exception")
+    requests_mock.exceptions.SSLError = SSLError
+    requests_mock.patch.side_effect = SSLError("mock exception")
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -360,34 +477,34 @@ def test_reader_init_non_default_host(api_uuid: UUID):
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_reader_query_by_collection_id(
-    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
 ):
     test_uuid = uuid4()
 
     reader.query(collection_id=test_uuid)
 
     collision_mock.assert_called_once_with(test_uuid, None)
-    request_mock.post.assert_called_once()
+    requests_mock.post.assert_called_once()
 
 
 @patch("starpoint.db._check_collection_identifier_collision")
 @patch("starpoint.db.requests")
 def test_reader_query_by_collection_name(
-    request_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
+    requests_mock: MagicMock, collision_mock: MagicMock, reader: db.Writer
 ):
     test_collection_name = "mock_collection_name"
 
     reader.query(collection_name=test_collection_name)
 
     collision_mock.assert_called_once_with(None, test_collection_name)
-    request_mock.post.assert_called_once()
+    requests_mock.post.assert_called_once()
 
 
 @patch("starpoint.db.requests")
 def test_reader_query_not_200(
-    request_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
 ):
-    request_mock.post().ok = False
+    requests_mock.post().ok = False
 
     expected_json = {}
 
@@ -396,17 +513,45 @@ def test_reader_query_not_200(
 
     actual_json = reader.query(collection_name="mock_collection_name")
 
-    request_mock.post.assert_called()
+    requests_mock.post.assert_called()
+    logger_mock.error.assert_called_once()
+    assert actual_json == expected_json
+
+
+@patch("starpoint.db.requests")
+def test_reader_infer_schema_200(
+    requests_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
+):
+    actual_json = reader.infer_schema(collection_name="mock_collection_name")
+
+    requests_mock.post.assert_called()
+    assert actual_json == requests_mock.post().json()
+
+
+@patch("starpoint.db.requests")
+def test_reader_infer_schema_not_200(
+    requests_mock: MagicMock, reader: db.Writer, monkeypatch: MonkeyPatch
+):
+    requests_mock.post().ok = False
+
+    expected_json = {}
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    actual_json = reader.infer_schema(collection_name="mock_collection_name")
+
+    requests_mock.post.assert_called()
     logger_mock.error.assert_called_once()
     assert actual_json == expected_json
 
 
 @patch("starpoint.db.requests")
 def test_writer_query_SSLError(
-    request_mock: MagicMock, reader: db.Reader, monkeypatch: MonkeyPatch
+    requests_mock: MagicMock, reader: db.Reader, monkeypatch: MonkeyPatch
 ):
-    request_mock.exceptions.SSLError = SSLError
-    request_mock.post.side_effect = SSLError("mock exception")
+    requests_mock.exceptions.SSLError = SSLError
+    requests_mock.post.side_effect = SSLError("mock exception")
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -452,6 +597,17 @@ def test_client_insert(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
+def test_client_transpose_and_insert(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.transpose_and_insert(embeddings=[1.1], document_metadatas={"mock": "value"})
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_writer().transpose_and_insert.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
 def test_client_query(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -463,6 +619,17 @@ def test_client_query(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
+def test_client_infer_schema(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.infer_schema()
+
+    mock_writer.assert_called_once()  # Only called during init
+    mock_reader().infer_schema.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
 def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -470,3 +637,244 @@ def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
 
     mock_reader.assert_called_once()  # Only called during init
     mock_writer().update.assert_called_once()
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_no_api_value(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    client = db.Client(api_key=uuid4())
+
+    with pytest.raises(ValueError, match=db.NO_API_KEY_VALUE_ERROR):
+        client.init_openai()
+
+    assert client.openai is None
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_both_api_value(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    client = db.Client(api_key=uuid4())
+
+    with pytest.raises(ValueError, match=db.MULTI_API_KEY_VALUE_ERROR):
+        client.init_openai("mock_key", "mock_path")
+
+    assert client.openai is None
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_with_api_key(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    mock_api_key = "mock_key"
+
+    client = db.Client(api_key=uuid4())
+
+    client.init_openai(openai_key=mock_api_key)
+
+    assert client.openai.api_key == mock_api_key
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_with_api_path(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    temp_file = NamedTemporaryFile()
+
+    client = db.Client(api_key=uuid4())
+    client.init_openai(openai_key_filepath=temp_file.name)
+
+    assert client.openai.api_key_path == temp_file.name
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_init_openai_with_bad_api_path(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    mock_api_key_path = "1234~/path"
+
+    client = db.Client(api_key=uuid4())
+    with pytest.raises(ValueError, match=db.NO_API_KEY_FILE_ERROR):
+        client.init_openai(openai_key_filepath=mock_api_key_path)
+
+    assert client.openai is None
+
+
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_uninitialized(
+    mock_writer: MagicMock, mock_reader: MagicMock
+):
+    client = db.Client(api_key=uuid4())
+    with pytest.raises(RuntimeError):
+        client.build_and_insert_embeddings_from_openai(
+            model="mock_model", input_data="mock_input"
+        )
+
+
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_input_string_success(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    collision_mock: MagicMock,
+):
+    client = db.Client(api_key=uuid4())
+    openai_mock = MagicMock()
+    client.openai = openai_mock
+
+    mock_embedding = 0.77
+    expected_embedding_response = {
+        "data": [
+            {
+                "embedding": mock_embedding,
+                "index": 0,
+            }
+        ]
+    }
+    openai_mock.Embedding.create.return_value = expected_embedding_response
+
+    mock_input = "mock_input"
+    mock_model = "mock-model"
+
+    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+        model=mock_model, input_data=mock_input
+    )
+
+    assert actual_embedding_response == expected_embedding_response
+    collision_mock.assert_called_once()
+    mock_writer().transpose_and_insert.assert_called_once()
+
+    # independently check args since embeddings is a map() generator and cannot be checked against simple equality
+    insert_call_kwargs = mock_writer().transpose_and_insert.call_args.kwargs
+    assert [mock_embedding] == list(insert_call_kwargs.get("embeddings"))
+    assert [{"input": mock_input}] == insert_call_kwargs.get("document_metadatas")
+    assert insert_call_kwargs.get("collection_id") is None  # default value
+    assert insert_call_kwargs.get("collection_name") is None  # default value
+
+
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_input_list_success(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    collision_mock: MagicMock,
+):
+    client = db.Client(api_key=uuid4())
+    openai_mock = MagicMock()
+    client.openai = openai_mock
+
+    expected_embedding_response = {
+        "data": [
+            {
+                "embedding": 0.77,
+                "index": 0,
+            },
+            {
+                "embedding": 0.88,
+                "index": 1,
+            },
+        ]
+    }
+    openai_mock.Embedding.create.return_value = expected_embedding_response
+
+    mock_input = ["mock_input1", "mock_input2"]
+    mock_model = "mock-model"
+
+    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+        model=mock_model, input_data=mock_input
+    )
+
+    assert actual_embedding_response == expected_embedding_response
+    collision_mock.assert_called_once()
+    mock_writer().transpose_and_insert.assert_called_once()
+
+    # independently check args since embeddings is a map() generator and cannot be checked against simple equality
+    insert_call_kwargs = mock_writer().transpose_and_insert.call_args.kwargs
+    assert [0.77, 0.88] == list(insert_call_kwargs.get("embeddings"))
+    assert [
+        {"input": "mock_input1"},
+        {"input": "mock_input2"},
+    ] == insert_call_kwargs.get("document_metadatas")
+    assert insert_call_kwargs.get("collection_id") is None  # default value
+    assert insert_call_kwargs.get("collection_name") is None  # default value
+
+
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    collision_mock: MagicMock,
+    monkeypatch: MonkeyPatch,
+):
+    client = db.Client(api_key=uuid4())
+    openai_mock = MagicMock()
+    client.openai = openai_mock
+
+    expected_embedding_response = {"mock": "return"}
+    openai_mock.Embedding.create.return_value = expected_embedding_response
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    mock_input = "mock_input"
+    mock_model = "mock-model"
+
+    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+        model=mock_model, input_data=mock_input
+    )
+
+    assert actual_embedding_response == expected_embedding_response
+    collision_mock.assert_called_once()
+    mock_writer().transpose_and_insert.assert_not_called()
+    logger_mock.warning.assert_called_once_with(db.NO_EMBEDDING_DATA_FOUND)
+
+
+@patch("starpoint.db._check_collection_identifier_collision")
+@patch("starpoint.db.Reader")
+@patch("starpoint.db.Writer")
+def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    collision_mock: MagicMock,
+    monkeypatch: MonkeyPatch,
+):
+    client = db.Client(api_key=uuid4())
+    openai_mock = MagicMock()
+    client.openai = openai_mock
+
+    expected_embedding_response = {
+        "data": [
+            {
+                "embedding": 0.77,
+                "index": 0,
+            }
+        ]
+    }
+    openai_mock.Embedding.create.return_value = expected_embedding_response
+
+    mock_writer().transpose_and_insert.side_effect = RuntimeError("Test Exception")
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(db, "LOGGER", logger_mock)
+
+    mock_input = "mock_input"
+    mock_model = "mock-model"
+
+    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+        model=mock_model, input_data=mock_input
+    )
+
+    assert actual_embedding_response == expected_embedding_response
+    collision_mock.assert_called_once()
+    logger_mock.error.assert_called_once()
