@@ -3,8 +3,8 @@ name: Publish Package to npmjs
 on:
   release:
     types: [published]
-  tags:
-    - typescript*
+    tags:
+      - typescript*
 
 jobs:
   build:
