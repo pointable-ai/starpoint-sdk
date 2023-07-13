@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import isURL from "validator/lib/isURL";
 
+const COLLECTIONS_PATH = "/api/v1/collections";
 const DOCUMENTS_PATH = "/api/v1/documents";
 const QUERY_PATH = "/api/v1/query";
 const INFER_SCHEMA_PATH = "/api/v1/infer_schema";
@@ -65,12 +66,9 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
 function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   const length = Math.min(listA.length, listB.length);
 
-  return Array(length).map(
-    (_pair, index) => {
-      return [listA[index], listB[index]]
-    }
-  )
-
+  return Array(length).map((_pair, index) => {
+    return [listA[index], listB[index]];
+  });
 }
 
 const initialize = (
@@ -91,15 +89,29 @@ const initialize = (
   const _insertDocument = async (request: InsertRequest) => {
     try {
       // sanitize request
-      _sanitizeCollectionIdentifiersInRequest(request)
+      _sanitizeCollectionIdentifiersInRequest(request);
       if (!request.documents) {
-        throw new Error("Did not specify documents to insert into collection in request");
+        throw new Error(
+          "Did not specify documents to insert into collection in request"
+        );
       }
-      if (request.documents && request.documents.some((document) => !document.embedding )) {
-        throw new Error("Did not specify an embedding for a document in the request")
+      if (
+        request.documents &&
+        request.documents.some((document) => !document.embedding)
+      ) {
+        throw new Error(
+          "Did not specify an embedding for a document in the request"
+        );
       }
-      if (request.documents && request.documents.some((document) => typeof document.embedding !== "number")){
-        throw new Error("One of the embeddings for a document contains an invalid number");
+      if (
+        request.documents &&
+        request.documents.some(
+          (document) => typeof document.embedding !== "number"
+        )
+      ) {
+        throw new Error(
+          "One of the embeddings for a document contains an invalid number"
+        );
       }
       // make api call
       const response = await writerClient.post<InsertResponse>(
@@ -108,23 +120,85 @@ const initialize = (
       );
       const result: APIResult<InsertResponse, ErrorResponse> = {
         data: response.data,
-        error: null
-      }
+        error: null,
+      };
       return result;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const result: APIResult<InsertResponse, ErrorResponse> = {
           data: null,
-          error: err?.response?.data
-        }
+          error: err?.response?.data,
+        };
         return result;
       } else {
-        throw err
+        throw err;
       }
     }
-  }
+  };
 
   return {
+    createCollection: async (request: CreateCollectionRequest) => {
+      try {
+        // sanitize request
+        if (!request.name) {
+          throw new Error("Did not specify name of collection in request");
+        }
+        if (!request.dimensionality) {
+          throw new Error(
+            "Did not specify dimensionality of collection in request"
+          );
+        }
+        // make api call
+        const response = await writerClient.post<CreateCollectionResponse>(
+          COLLECTIONS_PATH,
+          request
+        );
+        const result: APIResult<CreateCollectionResponse, ErrorResponse> = {
+          data: response.data,
+          error: null,
+        };
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          const result: APIResult<UpdateResponse, ErrorResponse> = {
+            data: null,
+            error: err?.response?.data,
+          };
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
+    },
+    deleteCollection: async (request: DeleteCollectionRequest) => {
+      try {
+        if (!request.collection_id) {
+          throw new Error("Did not specify collection_id in request");
+        }
+        // make api call
+        const response = await writerClient.delete<DeleteCollectionResponse>(
+          COLLECTIONS_PATH,
+          {
+            data: request,
+          }
+        );
+        const result: APIResult<DeleteCollectionResponse, ErrorResponse> = {
+          data: response.data,
+          error: null,
+        };
+        return result;
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          const result: APIResult<UpdateResponse, ErrorResponse> = {
+            data: null,
+            error: err?.response?.data,
+          };
+          return result;
+        } else {
+          throw new Error("different error than axios");
+        }
+      }
+    },
     insert: _insertDocument,
     update: async (request: UpdateRequest) => {
       try {
@@ -269,33 +343,30 @@ const initialize = (
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
 
-        // transpose metadata and embeddings 
+        // transpose metadata and embeddings
         const { embeddings, documentMetadata, ...rest } = request;
-        const columns = _zip(embeddings, documentMetadata)
+        const columns = _zip(embeddings, documentMetadata);
         const documents: Document[] = columns.map((column) => {
-          
           const [embedding, metadata] = column;
 
           return {
             embedding,
-            metadata
-          }
-        })
+            metadata,
+          };
+        });
 
         const insertRequest: InsertRequest = {
           ...rest,
-          documents
-        }
+          documents,
+        };
 
-        return _insertDocument(insertRequest)
-
-      }
-      catch (err) {
+        return _insertDocument(insertRequest);
+      } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<TransposeAndInsertResponse, ErrorResponse> = {
             data: null,
-            error: err?.response?.data
-          }
+            error: err?.response?.data,
+          };
           return result;
         } else {
           throw new Error("different error than axios");
@@ -306,10 +377,33 @@ const initialize = (
 };
 
 export const db = {
-  initialize
+  initialize,
+};
+
+// COLLECTION TYPES
+// CREATE
+export interface CreateCollectionRequest {
+  name: string;
+  dimensionality: number;
 }
 
-// INSERT TYPES
+export interface CreateCollectionResponse {
+  id: string;
+  name: string;
+  dimensionality: number;
+}
+
+// DELETE
+export interface DeleteCollectionRequest {
+  collection_id: string;
+}
+
+export interface DeleteCollectionResponse {
+  success: boolean;
+}
+
+// DOCUMENT TYPES
+// INSERT
 interface Document {
   embedding: number[];
   metadata?: Metadata;
@@ -326,14 +420,17 @@ export interface InsertResponse {
   documents: { id: string };
 }
 
-export type TransposeAndInsertRequest = ByWrapper<{embeddings: number[][], documentMetadata: Metadata[]}>;
+export type TransposeAndInsertRequest = ByWrapper<{
+  embeddings: number[][];
+  documentMetadata: Metadata[];
+}>;
 
 export interface TransposeAndInsertResponse {
   collection_id: string;
   documents: { id: string };
 }
 
-// UPDATE TYPES
+// UPDATE
 interface UpdateDocument {
   id: string;
   metadata: Metadata;
@@ -346,7 +443,7 @@ export interface UpdateResponse {
   documents: { id: string }[];
 }
 
-// DELETE TYPES
+// DELETE
 export type DeleteRequest = ByWrapper<{ ids: string[] }>;
 
 export interface DeleteResponse {
@@ -354,7 +451,7 @@ export interface DeleteResponse {
   document_ids: string[];
 }
 
-// QUERY TYPES
+// QUERY
 interface QueryDocuments {
   query_embedding?: number[] | undefined | null;
   sql?: string | undefined | null;
@@ -374,7 +471,7 @@ export interface QueryResponse {
   }[];
 }
 
-// INFER SCHEMA TYPES
+// INFER SCHEMA
 export enum InferredType {
   String,
   Number,
