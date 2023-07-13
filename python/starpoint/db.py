@@ -38,6 +38,7 @@ EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
 NO_EMBEDDING_DATA_FOUND = (
     "No embedding data found in the embedding response from OpenAI."
 )
+DIMENSIONALITY_ERROR = "Dimensionality must be greater than 0."
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -266,6 +267,9 @@ class Writer(object):
             dimensionality=1024,
         )
         """
+
+        if dimensionality <= 0:
+            raise ValueError(DIMENSIONALITY_ERROR)
 
         request_data = dict(
             collection_name=collection_name,
@@ -509,6 +513,17 @@ class Client(object):
             documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
+        )
+    
+    def create_collection(self, collection_name: str, dimensionality: int) -> Dict[Any, Any]:
+        return self.writer.create_collection(
+            collection_name=collection_name,
+            dimensionality=dimensionality,
+        )
+
+    def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
+        return self.writer.delete_collection(
+            collection_id=collection_id,
         )
 
     """

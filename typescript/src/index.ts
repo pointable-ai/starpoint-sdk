@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import isURL from "validator/lib/isURL";
 
 const COLLECTIONS_PATH = "/api/v1/collections";
@@ -148,6 +148,10 @@ const initialize = (
             "Did not specify dimensionality of collection in request"
           );
         }
+        if (request.dimensionality <= 0) {
+          throw new Error("Dimensionality cannot be less than or equal to 0");
+        }
+
         // make api call
         const response = await writerClient.post<CreateCollectionResponse>(
           COLLECTIONS_PATH,
