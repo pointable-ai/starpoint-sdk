@@ -3,12 +3,11 @@ name: Publish Python Package
 on:
   release:
     types: [published]
-    tags:
-      - python*
 
 jobs:
   pypi-publish:
     name: Publish release to PyPI
+    if: startsWith(github.ref, 'refs/tags/python')
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -30,6 +29,5 @@ jobs:
           pip install build
       - name: Build package
         run: python -m build
-      # Commented out to test workflow
-      # - name: Publish package distributions to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
