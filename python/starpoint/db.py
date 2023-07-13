@@ -9,6 +9,7 @@ import validators
 
 LOGGER = logging.getLogger(__name__)
 
+COLLECTIONS_PATH = "/api/v1/collections"
 DOCUMENTS_PATH = "/api/v1/documents"
 QUERY_PATH = "/api/v1/query"
 INFER_SCHEMA_PATH = "/api/v1/infer_schema"
@@ -37,6 +38,7 @@ EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING = (
 NO_EMBEDDING_DATA_FOUND = (
     "No embedding data found in the embedding response from OpenAI."
 )
+DIMENSIONALITY_ERROR = "Dimensionality must be greater than 0."
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
@@ -258,6 +260,73 @@ class Writer(object):
             return {}
         return response.json()
 
+    def create_collection(self, collection_name: str, dimensionality: int) -> Dict[Any, Any]:
+        """
+        dict(
+            name="collection_name_example",
+            dimensionality=1024,
+        )
+        """
+
+        if dimensionality <= 0:
+            raise ValueError(DIMENSIONALITY_ERROR)
+
+        request_data = dict(
+            collection_name=collection_name,
+            dimensionality=dimensionality,
+        )
+        try:
+            response = requests.post(
+                url=f"{self.host}{COLLECTIONS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
+
+        if not response.ok:
+            LOGGER.error(
+                f"Request failed with status code {response.status_code} "
+                f"and the following message:\n{response.text}"
+            )
+            return {}
+        return response.json()
+
+    
+    def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
+        """
+        dict(
+            collection_id="collection_id_example",
+        )
+        """
+
+        request_data = dict(
+            collection_id=collection_id,
+        )
+        try:
+            response = requests.delete(
+                url=f"{self.host}{COLLECTIONS_PATH}",
+                json=request_data,
+                headers=_build_header(
+                    api_key=self.api_key,
+                    additional_headers={"Content-Type": "application/json"},
+                ),
+            )
+        except requests.exceptions.SSLError as e:
+            LOGGER.error(SSL_ERROR_MSG)
+            raise e
+
+        if not response.ok:
+            LOGGER.error(
+                f"Request failed with status code {response.status_code} "
+                f"and the following message:\n{response.text}"
+            )
+            return {}
+        return response.json()
 
 class Reader(object):
     """docstring for Reader"""
@@ -444,6 +513,17 @@ class Client(object):
             documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
+        )
+    
+    def create_collection(self, collection_name: str, dimensionality: int) -> Dict[Any, Any]:
+        return self.writer.create_collection(
+            collection_name=collection_name,
+            dimensionality=dimensionality,
+        )
+
+    def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
+        return self.writer.delete_collection(
+            collection_id=collection_id,
         )
 
     """
