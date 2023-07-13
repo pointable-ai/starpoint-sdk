@@ -3,14 +3,11 @@ name: Publish Package to npmjs
 on:
   release:
     types: [published]
-    tags:
-      - typescript*
-
 
 jobs:
   npm-publish:
     name: Publish release to npmjs
-    if: startsWith(github.event.release.name, 'Typescript')
+    if: startsWith(github.event.ref, 'refs/tags/typescript')
     runs-on: ubuntu-latest
     permissions:
       contents: read
