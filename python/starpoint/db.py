@@ -18,7 +18,7 @@ API_HEADER_KEY = "x-starpoint-key"
 READER_URL = "https://reader.starpoint.ai"
 WRITER_URL = "https://writer.starpoint.ai"
 
-HEALTH_CHECK_MESSAGE = "hello"
+HEALTH_CHECK_MESSAGE = "hello."
 
 NO_HOST_ERROR = "No host value provided. A host must be provided."
 NO_COLLECTION_VALUE_ERROR = (
@@ -260,7 +260,9 @@ class Writer(object):
             return {}
         return response.json()
 
-    def create_collection(self, collection_name: str, dimensionality: int) -> Dict[Any, Any]:
+    def create_collection(
+        self, collection_name: str, dimensionality: int
+    ) -> Dict[Any, Any]:
         """
         dict(
             name="collection_name_example",
@@ -272,7 +274,7 @@ class Writer(object):
             raise ValueError(DIMENSIONALITY_ERROR)
 
         request_data = dict(
-            collection_name=collection_name,
+            name=collection_name,
             dimensionality=dimensionality,
         )
         try:
@@ -296,7 +298,6 @@ class Writer(object):
             return {}
         return response.json()
 
-    
     def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
         """
         dict(
@@ -327,6 +328,7 @@ class Writer(object):
             )
             return {}
         return response.json()
+
 
 class Reader(object):
     """docstring for Reader"""
@@ -514,8 +516,10 @@ class Client(object):
             collection_id=collection_id,
             collection_name=collection_name,
         )
-    
-    def create_collection(self, collection_name: str, dimensionality: int) -> Dict[Any, Any]:
+
+    def create_collection(
+        self, collection_name: str, dimensionality: int
+    ) -> Dict[Any, Any]:
         return self.writer.create_collection(
             collection_name=collection_name,
             dimensionality=dimensionality,
