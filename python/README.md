@@ -27,3 +27,15 @@ documents = [
 client.insert(documents=documents, collection_name="COLLECTION_NAME")
 
 ```
+
+## Contributing
+
+Make sure you have installed dev requirements
+```
+pip install -r dev-requirements.txt
+```
+
+Unit tests should be passing. You can run them via
+```
+pytest ./tests
+```
