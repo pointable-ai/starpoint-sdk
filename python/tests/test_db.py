@@ -139,7 +139,7 @@ def writer(host_health_mock: MagicMock, api_uuid: UUID) -> db.Writer:
 
 def test_writer_default_init(writer: db.Writer, api_uuid: UUID):
     assert writer.host
-    assert writer.host == db.COMPOSER_URL
+    assert writer.host == db.WRITER_URL
     assert writer.api_key == api_uuid
 
 
