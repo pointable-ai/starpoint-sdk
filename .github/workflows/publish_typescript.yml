@@ -10,7 +10,7 @@ on:
 jobs:
   npm-publish:
     name: Publish release to npmjs
-    if: startsWith(github.event.release.name, "Typescript")
+    if: startsWith(github.event.release.name, 'Typescript')
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -9,7 +9,7 @@ on:
 jobs:
   pypi-publish:
     name: Publish release to PyPI
-    if: startsWith(github.event.release.name, "Python")
+    if: startsWith(github.event.release.name, 'Python')
     runs-on: ubuntu-latest
     environment:
       name: pypi
