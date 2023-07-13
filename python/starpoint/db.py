@@ -14,8 +14,8 @@ QUERY_PATH = "/api/v1/query"
 INFER_SCHEMA_PATH = "/api/v1/infer_schema"
 API_HEADER_KEY = "x-starpoint-key"
 
-READER_URL = "https://grimoire.starpoint.ai"
-COMPOSER_URL = "https://warden.starpoint.ai"
+READER_URL = "https://reader.starpoint.ai"
+WRITER_URL = "https://writer.starpoint.ai"
 
 HEALTH_CHECK_MESSAGE = "hello"
 
@@ -86,7 +86,7 @@ class Writer(object):
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
-            host = COMPOSER_URL
+            host = WRITER_URL
 
         self.host = _set_and_validate_host(host)
         self.api_key = api_key
