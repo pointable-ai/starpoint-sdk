@@ -187,7 +187,7 @@ class Writer(object):
             return {}
         return response.json()
 
-    def transpose_and_insert(
+    def column_insert(
         self,
         embeddings: List[float],
         document_metadatas: List[Dict[Any, Any]],
@@ -465,14 +465,14 @@ class Client(object):
             collection_name=collection_name,
         )
 
-    def transpose_and_insert(
+    def column_insert(
         self,
         embeddings: List[float],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[UUID] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        return self.writer.transpose_and_insert(
+        return self.writer.column_insert(
             embeddings=embeddings,
             document_metadatas=document_metadatas,
             collection_id=collection_id,
@@ -598,7 +598,7 @@ class Client(object):
         try:
             sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
             embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
-            self.transpose_and_insert(
+            self.column_insert(
                 embeddings=embeddings,
                 document_metadatas=document_metadatas,
                 collection_id=collection_id,
