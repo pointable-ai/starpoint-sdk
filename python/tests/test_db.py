@@ -277,7 +277,7 @@ def test_writer_insert_SSLError(
 
 
 @patch("starpoint.db.Writer.insert")
-def test_writer_transpose_and_insert(insert_mock: MagicMock, writer: db.Writer):
+def test_writer_column_insert(insert_mock: MagicMock, writer: db.Writer):
     test_embeddings = [0.88, 0.71]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
@@ -291,7 +291,7 @@ def test_writer_transpose_and_insert(insert_mock: MagicMock, writer: db.Writer):
         },
     ]
 
-    writer.transpose_and_insert(
+    writer.column_insert(
         embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
@@ -303,7 +303,7 @@ def test_writer_transpose_and_insert(insert_mock: MagicMock, writer: db.Writer):
 
 
 @patch("starpoint.db.Writer.insert")
-def test_writer_transpose_and_insert_collection_id_collection_name_passed_through(
+def test_writer_column_insert_collection_id_collection_name_passed_through(
     insert_mock: MagicMock, writer: db.Writer
 ):
     test_embeddings = [0.88]
@@ -317,7 +317,7 @@ def test_writer_transpose_and_insert_collection_id_collection_name_passed_throug
     expected_collection_id = "mock_id"
     expected_collection_name = "mock_name"
 
-    writer.transpose_and_insert(
+    writer.column_insert(
         embeddings=test_embeddings,
         document_metadatas=test_document_metadatas,
         collection_id=expected_collection_id,
@@ -332,7 +332,7 @@ def test_writer_transpose_and_insert_collection_id_collection_name_passed_throug
 
 
 @patch("starpoint.db.Writer.insert")
-def test_writer_transpose_and_insert_shorter_metadatas_length(
+def test_writer_column_insert_shorter_metadatas_length(
     insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     test_embeddings = [0.88, 0.71]
@@ -347,7 +347,7 @@ def test_writer_transpose_and_insert_shorter_metadatas_length(
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
-    writer.transpose_and_insert(
+    writer.column_insert(
         embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
@@ -362,7 +362,7 @@ def test_writer_transpose_and_insert_shorter_metadatas_length(
 
 
 @patch("starpoint.db.Writer.insert")
-def test_writer_transpose_and_insert_shorter_embeddings_length(
+def test_writer_column_insert_shorter_embeddings_length(
     insert_mock: MagicMock, writer: db.Writer, monkeypatch: MonkeyPatch
 ):
     test_embeddings = [0.88]
@@ -377,7 +377,7 @@ def test_writer_transpose_and_insert_shorter_embeddings_length(
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
 
-    writer.transpose_and_insert(
+    writer.column_insert(
         embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
@@ -597,13 +597,13 @@ def test_client_insert(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.db.Reader")
 @patch("starpoint.db.Writer")
-def test_client_transpose_and_insert(mock_writer: MagicMock, mock_reader: MagicMock):
+def test_client_column_insert(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
-    client.transpose_and_insert(embeddings=[1.1], document_metadatas={"mock": "value"})
+    client.column_insert(embeddings=[1.1], document_metadatas={"mock": "value"})
 
     mock_reader.assert_called_once()  # Only called during init
-    mock_writer().transpose_and_insert.assert_called_once()
+    mock_writer().column_insert.assert_called_once()
 
 
 @patch("starpoint.db.Reader")
@@ -750,10 +750,10 @@ def test_client_build_and_insert_embeddings_from_openai_input_string_success(
 
     assert actual_embedding_response == expected_embedding_response
     collision_mock.assert_called_once()
-    mock_writer().transpose_and_insert.assert_called_once()
+    mock_writer().column_insert.assert_called_once()
 
     # independently check args since embeddings is a map() generator and cannot be checked against simple equality
-    insert_call_kwargs = mock_writer().transpose_and_insert.call_args.kwargs
+    insert_call_kwargs = mock_writer().column_insert.call_args.kwargs
     assert [mock_embedding] == list(insert_call_kwargs.get("embeddings"))
     assert [{"input": mock_input}] == insert_call_kwargs.get("document_metadatas")
     assert insert_call_kwargs.get("collection_id") is None  # default value
@@ -795,10 +795,10 @@ def test_client_build_and_insert_embeddings_from_openai_input_list_success(
 
     assert actual_embedding_response == expected_embedding_response
     collision_mock.assert_called_once()
-    mock_writer().transpose_and_insert.assert_called_once()
+    mock_writer().column_insert.assert_called_once()
 
     # independently check args since embeddings is a map() generator and cannot be checked against simple equality
-    insert_call_kwargs = mock_writer().transpose_and_insert.call_args.kwargs
+    insert_call_kwargs = mock_writer().column_insert.call_args.kwargs
     assert [0.77, 0.88] == list(insert_call_kwargs.get("embeddings"))
     assert [
         {"input": "mock_input1"},
@@ -836,7 +836,7 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
 
     assert actual_embedding_response == expected_embedding_response
     collision_mock.assert_called_once()
-    mock_writer().transpose_and_insert.assert_not_called()
+    mock_writer().column_insert.assert_not_called()
     logger_mock.warning.assert_called_once_with(db.NO_EMBEDDING_DATA_FOUND)
 
 
@@ -863,7 +863,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     }
     openai_mock.Embedding.create.return_value = expected_embedding_response
 
-    mock_writer().transpose_and_insert.side_effect = RuntimeError("Test Exception")
+    mock_writer().column_insert.side_effect = RuntimeError("Test Exception")
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
