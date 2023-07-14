@@ -1,13 +1,19 @@
 name: Python Tests
 
 on:
+  push:
   pull_request:
-    types:
-      - opened
+    branches:
+      - main
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  cancel:
-    name: Cancel previous workflows
+  test-python-sdk:
+    name: Python SDK Tests
     runs-on: ubuntu-latest
     defaults:
       run:
