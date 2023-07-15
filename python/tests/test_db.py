@@ -296,7 +296,7 @@ def test_writer_column_insert(insert_mock: MagicMock, writer: db.Writer):
     )
 
     insert_mock.assert_called_once_with(
-        document=expected_insert_document,
+        documents=expected_insert_document,
         collection_id=None,
         collection_name=None,
     )
@@ -325,7 +325,7 @@ def test_writer_column_insert_collection_id_collection_name_passed_through(
     )
 
     insert_mock.assert_called_once_with(
-        document=expected_insert_document,
+        documents=expected_insert_document,
         collection_id=expected_collection_id,
         collection_name=expected_collection_name,
     )
@@ -355,7 +355,7 @@ def test_writer_column_insert_shorter_metadatas_length(
         db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
     )
     insert_mock.assert_called_once_with(
-        document=expected_insert_document,
+        documents=expected_insert_document,
         collection_id=None,
         collection_name=None,
     )
@@ -385,7 +385,7 @@ def test_writer_column_insert_shorter_embeddings_length(
         db.EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING
     )
     insert_mock.assert_called_once_with(
-        document=expected_insert_document,
+        documents=expected_insert_document,
         collection_id=None,
         collection_name=None,
     )
