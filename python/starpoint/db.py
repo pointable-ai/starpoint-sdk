@@ -75,7 +75,7 @@ def _set_and_validate_host(host: str):
 
 
 def _check_collection_identifier_collision(
-    collection_id: Optional[UUID] = None, collection_name: Optional[str] = None
+    collection_id: Optional[str] = None, collection_name: Optional[str] = None
 ):
     if collection_id is None and collection_name is None:
         raise ValueError(NO_COLLECTION_VALUE_ERROR)
@@ -95,7 +95,7 @@ class Writer(object):
 
     def delete(
         self,
-        documents: List[UUID],
+        documents: List[str],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
@@ -113,7 +113,7 @@ class Writer(object):
         """
 
         request_data = dict(
-            collection_id=str(collection_id),
+            collection_id=collection_id,
             collection_name=collection_name,
             documents=[str(document) for document in documents],
         )
@@ -141,7 +141,7 @@ class Writer(object):
     def insert(
         self,
         documents: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
@@ -191,13 +191,13 @@ class Writer(object):
         self,
         embeddings: List[float],
         document_metadatas: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         if len(embeddings) != len(document_metadatas):
             LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
-        document = [
+        documents = [
             {
                 "embedding": embedding,
                 "metadata": document_metadata,
@@ -205,8 +205,8 @@ class Writer(object):
             for embedding, document_metadata in zip(embeddings, document_metadatas)
         ]
 
-        self.insert(
-            document=document,
+        return self.insert(
+            documents=documents,
             collection_id=collection_id,
             collection_name=collection_name,
         )
@@ -214,7 +214,7 @@ class Writer(object):
     def update(
         self,
         documents: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
@@ -298,7 +298,7 @@ class Writer(object):
             return {}
         return response.json()
 
-    def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
+    def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
         """
         dict(
             collection_id="collection_id_example",
@@ -343,7 +343,7 @@ class Reader(object):
     def query(
         self,
         sql: Optional[str] = None,
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
@@ -391,9 +391,9 @@ class Reader(object):
 
     def infer_schema(
         self,
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
-    ) -> Dict[any, any]:
+    ) -> Dict[Any, Any]:
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -443,8 +443,8 @@ class Client(object):
 
     def delete(
         self,
-        documents: List[UUID],
-        collection_id: Optional[UUID] = None,
+        documents: List[str],
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.writer.delete(
@@ -456,7 +456,7 @@ class Client(object):
     def insert(
         self,
         documents: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.writer.insert(
@@ -469,7 +469,7 @@ class Client(object):
         self,
         embeddings: List[float],
         document_metadatas: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.writer.column_insert(
@@ -482,7 +482,7 @@ class Client(object):
     def query(
         self,
         sql: Optional[str] = None,
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
@@ -497,7 +497,7 @@ class Client(object):
 
     def infer_schema(
         self,
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.reader.infer_schema(
@@ -508,7 +508,7 @@ class Client(object):
     def update(
         self,
         documents: List[Dict[Any, Any]],
-        collection_id: Optional[UUID] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.writer.update(
@@ -525,7 +525,7 @@ class Client(object):
             dimensionality=dimensionality,
         )
 
-    def delete_collection(self, collection_id: UUID) -> Dict[Any, Any]:
+    def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
         return self.writer.delete_collection(
             collection_id=collection_id,
         )
@@ -562,12 +562,12 @@ class Client(object):
     def build_and_insert_embeddings_from_openai(
         self,
         model: str,
-        input_data: Union[str, Iterable],
-        document_metadatas: Optional[List[Dict]] = None,
-        collection_id: Optional[UUID] = None,
+        input_data: Union[str, Iterable[Any]],
+        document_metadatas: Optional[List[Dict[Any, Any]]] = None,
+        collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[Any, Any]:
         if self.openai is None:
             raise RuntimeError(
                 "OpenAI instance has not been initialized. Please initialize it using "
