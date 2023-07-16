@@ -89,7 +89,7 @@ def _check_collection_identifier_collision(
 
 class Writer(object):
     """Client for the Writer endpoints. If you do not need to separate reading or
-    writing for your usage, consider using the Client object."""
+    writing for your usage, consider using the `Client` object."""
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
@@ -336,7 +336,7 @@ class Writer(object):
 
 class Reader(object):
     """Client for the Reader endpoints. If you do not need to separate reading or
-    writing for your usage, consider using the Client object.
+    writing for your usage, consider using the `Client` object.
     """
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
