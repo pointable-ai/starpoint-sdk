@@ -42,6 +42,7 @@ DIMENSIONALITY_ERROR = "Dimensionality must be greater than 0."
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
+    """Builds the header necessary to make a request to Starpoint endpoints."""
     header = {API_HEADER_KEY: str(api_key)}
     if additional_headers is not None:
         header.update(additional_headers)
@@ -49,6 +50,7 @@ def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = 
 
 
 def _check_host_health(hostname: str):
+    """Checks whether the host is healthy. The creation of the client is not blocked on unhealthy hosts."""
     resp = requests.get(hostname)
     assert (
         resp.ok
@@ -61,6 +63,7 @@ def _check_host_health(hostname: str):
 
 
 def _set_and_validate_host(host: str):
+    """Determine host validity before setting it for clients."""
     if not host:
         raise ValueError("No host value provided. A host must be provided.")
     elif validators.url(host) is not True:  # type: ignore
@@ -77,6 +80,7 @@ def _set_and_validate_host(host: str):
 def _check_collection_identifier_collision(
     collection_id: Optional[str] = None, collection_name: Optional[str] = None
 ):
+    """Check if both collection id and name have been provided. Currently, all client functionality only needs one of the two."""
     if collection_id is None and collection_name is None:
         raise ValueError(NO_COLLECTION_VALUE_ERROR)
     elif collection_id and collection_name:
@@ -84,7 +88,8 @@ def _check_collection_identifier_collision(
 
 
 class Writer(object):
-    """docstring for Writer"""
+    """Client for the Writer endpoints. If you do not need to separate reading or
+    writing for your usage, consider using the Client object."""
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
@@ -99,6 +104,7 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Remove documents in an existing collection."""
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -144,6 +150,7 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection."""
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -194,6 +201,8 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection by embedding and document metadata arrays."""
+
         if len(embeddings) != len(document_metadatas):
             LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
@@ -217,6 +226,8 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Update documents in an existing collection."""
+
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -263,11 +274,8 @@ class Writer(object):
     def create_collection(
         self, collection_name: str, dimensionality: int
     ) -> Dict[Any, Any]:
-        """
-        dict(
-            name="collection_name_example",
-            dimensionality=1024,
-        )
+        """Creates a collection by name and dimensionality. Dimensionality
+        should be greater than 0.
         """
 
         if dimensionality <= 0:
@@ -299,11 +307,7 @@ class Writer(object):
         return response.json()
 
     def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
-        """
-        dict(
-            collection_id="collection_id_example",
-        )
-        """
+        """Deletes a collection."""
 
         request_data = dict(
             collection_id=collection_id,
@@ -331,7 +335,9 @@ class Writer(object):
 
 
 class Reader(object):
-    """docstring for Reader"""
+    """Client for the Reader endpoints. If you do not need to separate reading or
+    writing for your usage, consider using the Client object.
+    """
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
@@ -348,6 +354,8 @@ class Reader(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
     ) -> Dict[Any, Any]:
+        """Queries a collection. This could be by sql or query embeddings."""
+
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -394,6 +402,9 @@ class Reader(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Infers the schema of a particular collection.
+        Gives the results back by column name and the inferred type for that column.
+        """
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -427,7 +438,7 @@ class Reader(object):
 
 
 class Client(object):
-    """docstring for Client"""
+    """Client that combines Reader, Writer, and additional 3rd party clients."""
 
     def __init__(
         self,
@@ -438,7 +449,7 @@ class Client(object):
         self.writer = Writer(api_key=api_key, host=writer_host)
         self.reader = Reader(api_key=api_key, host=reader_host)
 
-        # Consider a wrapper around openai once this class gets bloated
+        # TODO: Consider a wrapper around openai once this class gets bloated
         self.openai = None
 
     def delete(
@@ -447,6 +458,7 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Remove documents in an existing collection. `delete()` method from Writer."""
         return self.writer.delete(
             documents=documents,
             collection_id=collection_id,
@@ -459,6 +471,7 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection. `insert()` method from Writer."""
         return self.writer.insert(
             documents=documents,
             collection_id=collection_id,
@@ -472,6 +485,9 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection by embedding and document metadata arrays.
+        `column_insert()` method from Writer.
+        """
         return self.writer.column_insert(
             embeddings=embeddings,
             document_metadatas=document_metadatas,
@@ -487,6 +503,10 @@ class Client(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
     ) -> Dict[Any, Any]:
+        """Queries a collection. This could be by sql or query embeddings.
+        `query()` method from Reader.
+        """
+
         return self.reader.query(
             sql=sql,
             collection_id=collection_id,
@@ -500,9 +520,13 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Infers the schema of a particular collection.
+        Gives the results back by column name and the inferred type for that column.
+        `infer_schema()` method from Reader.
+        """
+
         return self.reader.infer_schema(
-            collection_id=collection_id,
-            collection_name=collection_name,
+            collection_id=collection_id, collection_name=collection_name
         )
 
     def update(
@@ -511,6 +535,7 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Update documents in an existing collection. `update()` method in Writer."""
         return self.writer.update(
             documents=documents,
             collection_id=collection_id,
@@ -520,12 +545,16 @@ class Client(object):
     def create_collection(
         self, collection_name: str, dimensionality: int
     ) -> Dict[Any, Any]:
+        """Creates a collection by name and dimensionality. Dimensionality
+        should be greater than 0. `create_collection()` method from Writer.
+        """
         return self.writer.create_collection(
             collection_name=collection_name,
             dimensionality=dimensionality,
         )
 
     def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
+        """Deletes a collection. `delete_collection()` method from Writer."""
         return self.writer.delete_collection(
             collection_id=collection_id,
         )
@@ -539,7 +568,7 @@ class Client(object):
         openai_key: Optional[str] = None,
         openai_key_filepath: Optional[str] = None,
     ):
-        """Initializes openai functionality"""
+        """Initializes OpenAI functionality by setting up the openai client."""
         self.openai = openai
         # TODO: maybe do this for starpoint api_key also
 
@@ -559,6 +588,7 @@ class Client(object):
             self.openai = None
             raise e
 
+    # TODO: Add convenience method that also includes creating collection from scratch.
     def build_and_insert_embeddings_from_openai(
         self,
         model: str,
@@ -568,6 +598,11 @@ class Client(object):
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Builds and inserts embeddings into starpoint by requesting embedding creation from
+        an initialized openai client. Regardless whether the operation into starpoint is
+        successful, the response from the openai client is returned.
+        """
+
         if self.openai is None:
             raise RuntimeError(
                 "OpenAI instance has not been initialized. Please initialize it using "
