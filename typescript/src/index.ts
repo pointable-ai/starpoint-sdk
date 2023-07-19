@@ -1,6 +1,11 @@
 import axios from "axios";
 import isURL from "validator/lib/isURL";
-import { Configuration, OpenAIApi, CreateEmbeddingRequestInput, CreateEmbeddingResponse } from "openai"
+import {
+  Configuration,
+  OpenAIApi,
+  CreateEmbeddingRequestInput,
+  CreateEmbeddingResponse,
+} from "openai";
 import fs from "fs";
 const COLLECTIONS_PATH = "/api/v1/collections";
 const DOCUMENTS_PATH = "/api/v1/documents";
@@ -64,8 +69,8 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
   }
 }
 
- const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
-  const fileStats = await fs.promises.stat(request.openai_key_filepath)
+const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
+  const fileStats = await fs.promises.stat(request.openaiKeyFilepath);
 
   if ("openai_key" in request && "openai_key_filepath" in request) {
     throw new Error(
@@ -99,20 +104,21 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
   ) {
     throw new Error("OpenAI key filepath must be a file in request");
   }
-}
+};
 
-const _backfillDocumentMetadata = (inputData: string | any[] | string[] | number[]) => {
-  if (typeof(inputData) === "string"){
-    return [{"input": inputData}]
-  }
-  else {
+const _backfillDocumentMetadata = (
+  inputData: string | any[] | string[] | number[]
+) => {
+  if (typeof inputData === "string") {
+    return [{ input: inputData }];
+  } else {
     return inputData.map((data) => {
       return {
-        "input": data
-      }
+        input: data,
+      };
     });
   }
-}
+};
 
 function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   const length = Math.min(listA.length, listB.length);
@@ -125,7 +131,7 @@ function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
 const initialize = (
   apiKey: string,
   writerHostURL?: string,
-  readerHostURL?: string,
+  readerHostURL?: string
 ) => {
   axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
 
@@ -223,7 +229,7 @@ const initialize = (
         throw error;
       }
     }
-  }
+  };
 
   return {
     createCollection: async (request: CreateCollectionRequest) => {
@@ -265,7 +271,7 @@ const initialize = (
     },
     deleteCollection: async (request: DeleteCollectionRequest) => {
       try {
-        if (!request.collection_id) {
+        if (!request.collectionId) {
           throw new Error("Did not specify collection_id in request");
         }
         // make api call
@@ -374,8 +380,8 @@ const initialize = (
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
         if (
-          request.query_embedding &&
-          request.query_embedding.some(
+          request.queryEmbedding &&
+          request.queryEmbedding.some(
             (embedding) => typeof embedding !== "number"
           )
         ) {
@@ -434,58 +440,86 @@ const initialize = (
     columnInsert: _columnInsert,
     initOpenAI: async (request: InitOpenAIRequest) => {
       try {
-        _sanitizeInitOpenAIRequest(request);
+        await _sanitizeInitOpenAIRequest(request);
         const configuration = new Configuration({
           apiKey: request.openaiKey,
         });
         openAIApiClient = new OpenAIApi(configuration);
-      }
-      catch (error) {
-        throw error
+      } catch (error) {
+        throw error;
       }
     },
-    buildAndInsertEmbeddingsFromOpenAI: async (request: BuildAndInsertEmbeddingsFromOpenAIRequest) => {
+    buildAndInsertEmbeddingsFromOpenAI: async (
+      request: BuildAndInsertEmbeddingsFromOpenAIRequest
+    ) => {
       try {
         if (openAIApiClient === null) {
-          throw new Error("OpenAI instance has not been initialized. Please initialize it using \"Client.init_openai()\"")
+          throw new Error(
+            'OpenAI instance has not been initialized. Please initialize it using "client.initOpenai()"'
+          );
         }
         _sanitizeCollectionIdentifiersInRequest(request);
 
-        const { model, inputData, documentMetadata, openaiUser, ...rest } = request;
+        const { model, inputData, documentMetadata, openaiUser, ...rest } =
+          request;
 
         const embeddingResponse = await openAIApiClient.createEmbedding({
           model: model,
           input: inputData,
-          user: openaiUser
+          user: openaiUser,
         });
 
         const embeddingData = embeddingResponse.data.data;
         if (embeddingData === null) {
-          return {
-            openaiResponse: embeddingResponse,
-            starpointResponse: null
+          const response: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
+            data: {
+              openaiResponse: embeddingResponse.data,
+              starpointResponse: null,
+            },
+            error: null
           }
+          return response;
         }
 
-        const sortedEmbeddingData = embeddingData.sort((a, b) => a.index - b.index);
-        const embeddings = sortedEmbeddingData.map((embeddingData) => embeddingData.embedding)
+        const sortedEmbeddingData = embeddingData.sort(
+          (a, b) => a.index - b.index
+        );
+        const embeddings = sortedEmbeddingData.map(
+          (embeddingData) => embeddingData.embedding
+        );
 
-        const starpointResponse = _columnInsert({ 
+        const requestedDocumentMetadata =
+          documentMetadata !== null
+            ? documentMetadata
+            : _backfillDocumentMetadata(inputData);
+
+        const starpointResponse = await _columnInsert({
           embeddings,
-          documentMetadata: (documentMetadata) !== null ? documentMetadata : _backfillDocumentMetadata(inputData),
-          ...rest
-        })
+          documentMetadata: requestedDocumentMetadata,
+          ...rest,
+        });
 
-        return {
-          openaiResponse: embeddingResponse,
-          starpointResponse
+        const returnedResponse: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
+          data: {
+            openaiResponse: embeddingResponse.data,
+            starpointResponse
+          },
+          error: null
         }
 
+        return returnedResponse
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const result: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
+            data: null,
+            error: error?.response?.data,
+          };
+          return result;
+        } else {
+          throw error;
+        }
       }
-      catch (error) {
-        throw error
-      }
-    }
+    },
   };
 };
 
@@ -616,9 +650,9 @@ export type BuildAndInsertEmbeddingsFromOpenAIRequest = ByWrapper<{
   openaiUser: Option<string>;
 }>;
 
-export interface BuildAndInsertEmbeddingsFromOpenAI {
+export interface BuildAndInsertEmbeddingsFromOpenAIResponse {
   openaiResponse: CreateEmbeddingResponse;
-  starpointResponse: any; // TODO:
+  starpointResponse: APIResult<InsertResponse, ErrorResponse>;
 }
 
 interface ByCollectionName {
