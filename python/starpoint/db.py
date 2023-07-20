@@ -167,6 +167,7 @@ class Writer(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         """Insert documents into an existing collection.
+
         Args:
             documents: The documents to insert into the collection.
             collection_id: The collection's id to insert the documents to.
@@ -512,6 +513,20 @@ class Reader(object):
     ) -> Dict[Any, Any]:
         """Infers the schema of a particular collection.
         Gives the results back by column name and the inferred type for that column.
+
+        Args:
+            collection_id: The collection's id where the query will happen.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the query will happen.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: infer schema response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
         """
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
@@ -566,7 +581,22 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        """Remove documents in an existing collection. `delete()` method from Writer."""
+        """Remove documents in an existing collection. `delete()` method from `Writer`.
+
+        Args:
+            documents: The documents to remove from the collection.
+            collection_id: The collection's id to remove the documents from.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to remove the documents from.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: delete response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+        """
         return self.writer.delete(
             documents=documents,
             collection_id=collection_id,
@@ -579,7 +609,23 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        """Insert documents into an existing collection. `insert()` method from Writer."""
+        """Insert documents into an existing collection. `insert()` method from `Writer`.
+
+        Args:
+            documents: The documents to insert into the collection.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.insert(
             documents=documents,
             collection_id=collection_id,
@@ -594,7 +640,26 @@ class Client(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         """Insert documents into an existing collection by embedding and document metadata arrays.
-        `column_insert()` method from Writer.
+        The arrays are zipped together and inserted as a document in the order of the two arrays.
+        `column_insert()` method from `Writer`.
+
+        Args:
+            embeddings: A list of embeddings.
+                Order of the embeddings should match the document_metadatas.
+            document_metadatas: A list of metadata to be associated with embeddings.
+                Order of these metadatas should match the embeddings.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
         """
         return self.writer.column_insert(
             embeddings=embeddings,
@@ -643,7 +708,23 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        """Update documents in an existing collection. `update()` method in Writer."""
+        """Update documents in an existing collection. `update()` method in Writer.
+
+        Args:
+            documents: The documents to update in the collection.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: update response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.update(
             documents=documents,
             collection_id=collection_id,
@@ -655,6 +736,18 @@ class Client(object):
     ) -> Dict[Any, Any]:
         """Creates a collection by name and dimensionality. Dimensionality
         should be greater than 0. `create_collection()` method from Writer.
+
+        Args:
+            collection_name: The name of the collection that will be created.
+            dimensionality: The number of dimensions the collection will have.
+                Must be an int larger than 0.
+
+        Returns:
+            dict: create collections response json
+
+        Raises:
+            ValueError: If dimensionality is 0 or less.
+            requests.exceptions.SSLError: Failure likely due to network issues.
         """
         return self.writer.create_collection(
             collection_name=collection_name,
@@ -676,7 +769,17 @@ class Client(object):
         openai_key: Optional[str] = None,
         openai_key_filepath: Optional[str] = None,
     ):
-        """Initializes OpenAI functionality by setting up the openai client."""
+        """Initializes OpenAI functionality by setting up the openai client.
+
+        Args:
+            openai_key: OpenAI API key.
+            openai_key_filepath: Filepath that contains an OpenAI API key.
+
+        Raises:
+            ValueError: Both API key and filepath to API key is provided. Only one is allowed.
+            ValueError: No API key or filepath provided.
+            ValueError: API key filepath provided is not a file.
+        """
         self.openai = openai
         # TODO: maybe do this for starpoint api_key also
 
@@ -709,6 +812,20 @@ class Client(object):
         """Builds and inserts embeddings into starpoint by requesting embedding creation from
         an initialized openai client. Regardless whether the operation into starpoint is
         successful, the response from the openai client is returned.
+
+        Args:
+            model: Embedding model to be used for creating the embeddings. For an up to date list of what
+                models are available see [OpenAI's guide on embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings)
+            input_data: Data to be embedded.
+            document_metadatas: Optional metadatas to tie to the embeddings generated using the input data.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+            openai_user: Optional user string used by the embedding endpoint from OpenAI.
+
+        Returns:
+            dict: Includes both responses from starpoint and openai.
         """
 
         if self.openai is None:
