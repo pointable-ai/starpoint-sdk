@@ -14,10 +14,20 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
-dependencies = ["openai~=0.27", "requests~=2.28", "validators~=0.20"]
+dependencies = [
+  "openai~=0.27",
+  "requests~=2.28",
+  "validators~=0.20",
+]
 
 [project.optional-dependencies]
-dev = ["pip-tools~=6.14", "pre-commit~=3.3", "pytest-cov~=4.1", "pytest~=7.3"]
+dev = [
+  "pip-tools~=6.14",
+  "pre-commit~=3.3",
+  "pytest-cov~=4.1",
+  "pytest~=7.3",
+  "pydoc-markdown~=4.8",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/starpoint-ai/sdk"
