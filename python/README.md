@@ -28,6 +28,12 @@ client.insert(documents=documents, collection_name="COLLECTION_NAME")
 
 ```
 
+## Generating Documentation
+
+Documentation is generated from the source code and outputs as markdown.
+
+`pydoc-markdown pydoc-markdown.yml`
+
 ## Contributing
 
 Make sure you have installed dev requirements
