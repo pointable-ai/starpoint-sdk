@@ -1,0 +1,11 @@
+{
+    "entryPoints": [
+        "src/index.ts"
+    ],
+    "out": "./docs/js_reference",
+    "commentStyle": "all",
+    "plugin": [
+        "typedoc-plugin-markdown",
+        "typedoc-plugin-missing-exports"
+    ]
+}
