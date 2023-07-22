@@ -65,34 +65,40 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
 
 function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   const length = Math.min(listA.length, listB.length);
-
-  return Array(length).map((_pair, index) => {
+  const result: [T,U][] = Array(length).fill(0).map((_pair, index) => {
     return [listA[index], listB[index]];
   });
+  return result;
 }
 
 const initialize = (
   apiKey: string,
-  writerHostURL?: string,
-  readerHostURL?: string
+  options?: {
+    writerHostURL?: string;
+    readerHostURL?: string;
+  }
 ) => {
   axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
 
   const writerClient = axios.create({
-    baseURL: writerHostURL ? _setAndValidateHost(writerHostURL) : WRITER_URL,
+    baseURL: options?.writerHostURL
+      ? _setAndValidateHost(options.writerHostURL)
+      : WRITER_URL,
   });
 
   const readerClient = axios.create({
-    baseURL: readerHostURL ? _setAndValidateHost(readerHostURL) : READER_URL,
+    baseURL: options?.readerHostURL
+      ? _setAndValidateHost(options.readerHostURL)
+      : READER_URL,
   });
 
-  const _insertDocument = async (request: InsertRequest) => {
+  const _insertDocuments = async (request: InsertRequest) => {
     try {
       // sanitize request
       _sanitizeCollectionIdentifiersInRequest(request);
-      if (!request.documents) {
+      if (!request.documents || (request.documents && request.documents.length === 0)) {
         throw new Error(
-          "Did not specify documents to insert into collection in request"
+          "Did not specify documents in request"
         );
       }
       if (
@@ -105,8 +111,10 @@ const initialize = (
       }
       if (
         request.documents &&
-        request.documents.some(
-          (document) => typeof document.embedding !== "number"
+        request.documents.some((document) =>
+          document.embedding.some(
+            (embeddingValue) => typeof embeddingValue !== "number"
+          )
         )
       ) {
         throw new Error(
@@ -131,7 +139,10 @@ const initialize = (
         };
         return result;
       } else {
-        throw err;
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     }
   };
@@ -203,13 +214,13 @@ const initialize = (
         }
       }
     },
-    insert: _insertDocument,
-    update: async (request: UpdateRequest) => {
+    insertDocuments: _insertDocuments,
+    updateDocuments: async (request: UpdateRequest) => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.documents) {
-          throw new Error("Did not specify documents to update in request");
+        if (!request.documents || (request.documents && request.documents.length === 0)) {
+          throw new Error("Did not specify documents in request");
         }
         if (
           request.documents &&
@@ -245,15 +256,18 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: err.message
+          }
         }
       }
     },
-    delete: async (request: DeleteRequest) => {
+    deleteDocuments: async (request: DeleteRequest) => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.ids) {
+        if (!request.ids || (request.ids && request.ids.length === 0)) {
           throw new Error("Did not specify documents to delete in request");
         }
         // make api call
@@ -280,7 +294,7 @@ const initialize = (
         }
       }
     },
-    query: async (request: QueryRequest) => {
+    queryDocuments: async (request: QueryRequest) => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
@@ -312,7 +326,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: err.message
+          }
         }
       }
     },
@@ -349,10 +366,9 @@ const initialize = (
 
         // transpose metadata and embeddings
         const { embeddings, documentMetadata, ...rest } = request;
-        const columns = _zip(embeddings, documentMetadata);
+        const columns = _zip<number[], Value>(embeddings, documentMetadata);
         const documents: Document[] = columns.map((column) => {
           const [embedding, metadata] = column;
-
           return {
             embedding,
             metadata,
@@ -364,7 +380,7 @@ const initialize = (
           documents,
         };
 
-        return _insertDocument(insertRequest);
+        return _insertDocuments(insertRequest);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const result: APIResult<TransposeAndInsertResponse, ErrorResponse> = {
@@ -373,7 +389,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: err.message
+          };
         }
       }
     },
@@ -421,7 +440,7 @@ export type InsertRequest = ByWrapper<InsertDocuments>;
 
 export interface InsertResponse {
   collection_id: string;
-  documents: { id: string };
+  documents: { id: string }[];
 }
 
 export type TransposeAndInsertRequest = ByWrapper<{
@@ -431,7 +450,7 @@ export type TransposeAndInsertRequest = ByWrapper<{
 
 export interface TransposeAndInsertResponse {
   collection_id: string;
-  documents: { id: string };
+  documents: { id: string }[];
 }
 
 // UPDATE
