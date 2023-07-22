@@ -141,7 +141,7 @@ const initialize = (
       } else {
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message }
         };
       }
     }
@@ -154,7 +154,7 @@ const initialize = (
         if (!request.name) {
           throw new Error("Did not specify name of collection in request");
         }
-        if (!request.dimensionality) {
+        if (request.dimensionality === undefined || request.dimensionality === null) {
           throw new Error(
             "Did not specify dimensionality of collection in request"
           );
@@ -181,7 +181,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: { error_message: err.message }
+          }
         }
       }
     },
@@ -210,7 +213,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+         return {
+          data: null,
+          error: { error_message: err.message }
+         }
         }
       }
     },
@@ -258,7 +264,7 @@ const initialize = (
         } else {
           return {
             data: null,
-            error: err.message
+            error: { error_message: err.message }
           }
         }
       }
@@ -290,7 +296,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: { error_message: err.message }
+          }
         }
       }
     },
@@ -328,7 +337,7 @@ const initialize = (
         } else {
           return {
             data: null,
-            error: err.message
+            error: { error_message: err.message }
           }
         }
       }
@@ -355,7 +364,10 @@ const initialize = (
           };
           return result;
         } else {
-          throw new Error("different error than axios");
+          return {
+            data: null,
+            error: { error_message: err.message }
+          }
         }
       }
     },
@@ -391,7 +403,7 @@ const initialize = (
         } else {
           return {
             data: null,
-            error: err.message
+            error: { error_message: err.message }
           };
         }
       }
