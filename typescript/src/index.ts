@@ -182,7 +182,7 @@ const initialize = (
       } else {
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     }
@@ -223,7 +223,7 @@ const initialize = (
       } else {
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     }
@@ -305,7 +305,7 @@ const initialize = (
       }
       return {
         data: null,
-        error: err.message,
+        error: { error_message: err.message} ,
       };
     }
   };
@@ -347,7 +347,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
@@ -379,7 +379,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
@@ -428,7 +428,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
@@ -462,7 +462,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
@@ -491,7 +491,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
@@ -520,12 +520,12 @@ const initialize = (
         }
         return {
           data: null,
-          error: err.message,
+          error: { error_message: err.message } ,
         };
       }
     },
     columnInsert: _columnInsert,
-    initOpenAI: async (request: InitOpenAIRequest) => {
+    initOpenAI: async (request: InitOpenAIRequest): Promise<APIResult<InitOpenAIResponse, ErrorResponse> => {
       try {
         await _sanitizeInitOpenAIRequest(request);
         const configuration = new Configuration({
@@ -543,7 +543,7 @@ const initialize = (
           data: {
             success: false,
           },
-          error: err.message,
+          error: { error_message: err.message} ,
         };
       }
     },
