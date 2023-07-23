@@ -298,20 +298,15 @@ const initialize = (
       return returnedResponse;
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const result: APIResult<
-          BuildAndInsertEmbeddingsFromOpenAIResponse,
-          ErrorResponse
-        > = {
+        return {
           data: null,
           error: err?.response?.data,
         };
-        return result;
-      } else {
-        return {
-          data: null,
-          error: err.message,
-        };
       }
+      return {
+        data: null,
+        error: err.message,
+      };
     }
   };
 
