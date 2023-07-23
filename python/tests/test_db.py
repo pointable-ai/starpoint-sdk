@@ -866,7 +866,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     openai_mock = MagicMock()
     client.openai = openai_mock
 
-    COLUMN_INSERT_ERROR_MESSAGE = "Test Exception"
+    column_insert_error_message = "Test Exception"
 
     expected_embedding_response = {
         "data": [
@@ -878,7 +878,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     }
     openai_mock.Embedding.create.return_value = expected_embedding_response
 
-    mock_writer().column_insert.side_effect = RuntimeError(COLUMN_INSERT_ERROR_MESSAGE)
+    mock_writer().column_insert.side_effect = RuntimeError(column_insert_error_message)
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -888,7 +888,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
 
     expected_build_and_insert_response = {
         "openai_response": expected_embedding_response,
-        "starpoint_response": {"error": COLUMN_INSERT_ERROR_MESSAGE},
+        "starpoint_response": {"error": column_insert_error_message},
     }
 
     build_and_insert_response = client.build_and_insert_embeddings_from_openai(

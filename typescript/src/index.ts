@@ -106,9 +106,7 @@ const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
   }
 };
 
-const _backfillDocumentMetadata = (
-  inputData: string | any[] | string[] | number[]
-) => {
+const _backfillDocumentMetadata = (inputData: CreateEmbeddingRequestInput) => {
   if (typeof inputData === "string") {
     return [{ input: inputData }];
   } else {
@@ -145,7 +143,9 @@ const initialize = (
 
   let openAIApiClient: OpenAIApi | null = null;
 
-  const _insertDocument = async (request: InsertRequest) => {
+  const _insertDocument = async (
+    request: InsertRequest
+  ): Promise<APIResult<InsertResponse, ErrorResponse>> => {
     try {
       // sanitize request
       _sanitizeCollectionIdentifiersInRequest(request);
@@ -162,16 +162,6 @@ const initialize = (
           "Did not specify an embedding for a document in the request"
         );
       }
-      if (
-        request.documents &&
-        request.documents.some(
-          (document) => typeof document.embedding !== "number"
-        )
-      ) {
-        throw new Error(
-          "One of the embeddings for a document contains an invalid number"
-        );
-      }
       // make api call
       const response = await writerClient.post<InsertResponse>(
         DOCUMENTS_PATH,
@@ -182,20 +172,25 @@ const initialize = (
         error: null,
       };
       return result;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
         const result: APIResult<InsertResponse, ErrorResponse> = {
           data: null,
-          error: error?.response?.data,
+          error: err?.response?.data,
         };
         return result;
       } else {
-        throw error;
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     }
   };
 
-  const _columnInsert = async (request: TransposeAndInsertRequest) => {
+  const _columnInsert = async (
+    request: TransposeAndInsertRequest
+  ): Promise<APIResult<TransposeAndInsertResponse, ErrorResponse>> => {
     try {
       // sanitize request
       _sanitizeCollectionIdentifiersInRequest(request);
@@ -218,21 +213,112 @@ const initialize = (
       };
 
       return _insertDocument(insertRequest);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
         const result: APIResult<TransposeAndInsertResponse, ErrorResponse> = {
           data: null,
-          error: error?.response?.data,
+          error: err?.response?.data,
         };
         return result;
       } else {
-        throw error;
+        return {
+          data: null,
+          error: err.message,
+        };
+      }
+    }
+  };
+
+  const _buildAndInsertEmbeddingsFromOpenAI = async (
+    request: BuildAndInsertEmbeddingsFromOpenAIRequest
+  ): Promise<
+    APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse>
+  > => {
+    try {
+      if (openAIApiClient === null) {
+        throw new Error(
+          'OpenAI instance has not been initialized. Please initialize it using "client.initOpenai()"'
+        );
+      }
+      _sanitizeCollectionIdentifiersInRequest(request);
+
+      const { model, input_data, document_metadata, openai_user, ...rest } =
+        request;
+
+      const embeddingResponse = await openAIApiClient.createEmbedding({
+        model: model,
+        input: input_data,
+        user: openai_user,
+      });
+
+      const embeddingData = embeddingResponse.data.data;
+      if (embeddingData === null) {
+        const response: APIResult<
+          BuildAndInsertEmbeddingsFromOpenAIResponse,
+          ErrorResponse
+        > = {
+          data: {
+            openai_response: embeddingResponse.data,
+            starpoint_response: null,
+          },
+          error: null,
+        };
+        return response;
+      }
+
+      const sortedEmbeddingData = embeddingData.sort(
+        (a, b) => a.index - b.index
+      );
+      const embeddings = sortedEmbeddingData.map(
+        (embeddingData) => embeddingData.embedding
+      );
+
+      const requestedDocumentMetadata =
+        document_metadata !== null
+          ? document_metadata
+          : _backfillDocumentMetadata(input_data);
+
+      const starpointResponse = await _columnInsert({
+        embeddings,
+        document_metadata: requestedDocumentMetadata,
+        ...rest,
+      });
+
+      const returnedResponse: APIResult<
+        BuildAndInsertEmbeddingsFromOpenAIResponse,
+        ErrorResponse
+      > = {
+        data: {
+          openai_response: embeddingResponse.data,
+          starpoint_response: starpointResponse.data,
+        },
+        error: null,
+      };
+
+      return returnedResponse;
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const result: APIResult<
+          BuildAndInsertEmbeddingsFromOpenAIResponse,
+          ErrorResponse
+        > = {
+          data: null,
+          error: err?.response?.data,
+        };
+        return result;
+      } else {
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     }
   };
 
   return {
-    createCollection: async (request: CreateCollectionRequest) => {
+    createCollection: async (
+      request: CreateCollectionRequest
+    ): Promise<APIResult<CreateCollectionResponse, ErrorResponse>> => {
       try {
         // sanitize request
         if (!request.name) {
@@ -257,19 +343,22 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<UpdateResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
-    deleteCollection: async (request: DeleteCollectionRequest) => {
+    deleteCollection: async (
+      request: DeleteCollectionRequest
+    ): Promise<APIResult<DeleteCollectionResponse, ErrorResponse>> => {
       try {
         if (!request.collection_id) {
           throw new Error("Did not specify collection_id in request");
@@ -286,20 +375,23 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<UpdateResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
     insert: _insertDocument,
-    update: async (request: UpdateRequest) => {
+    update: async (
+      request: UpdateRequest
+    ): Promise<APIResult<UpdateResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
@@ -332,19 +424,22 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<UpdateResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
-    delete: async (request: DeleteRequest) => {
+    delete: async (
+      request: DeleteRequest
+    ): Promise<APIResult<DeleteResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
@@ -363,32 +458,25 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<DeleteResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
-    query: async (request: QueryRequest) => {
+    query: async (
+      request: QueryRequest
+    ): Promise<APIResult<QueryResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (
-          request.query_embedding &&
-          request.query_embedding.some(
-            (embedding) => typeof embedding !== "number"
-          )
-        ) {
-          throw new Error(
-            "One of the embeddings in the request is not a valid number"
-          );
-        }
         // make api call
         const response = await readerClient.post<QueryResponse>(
           QUERY_PATH,
@@ -399,19 +487,22 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<QueryResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
-    inferSchema: async (request: InferSchemaRequest) => {
+    inferSchema: async (
+      request: InferSchemaRequest
+    ): Promise<APIResult<InferSchemaResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
@@ -425,16 +516,17 @@ const initialize = (
           error: null,
         };
         return result;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const result: APIResult<InferSchemaResponse, ErrorResponse> = {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          return {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
-          return result;
-        } else {
-          throw error;
         }
+        return {
+          data: null,
+          error: err.message,
+        };
       }
     },
     columnInsert: _columnInsert,
@@ -445,83 +537,33 @@ const initialize = (
           apiKey: request.openai_key,
         });
         openAIApiClient = new OpenAIApi(configuration);
-      } catch (error) {
-        throw error;
-      }
-    },
-    buildAndInsertEmbeddingsFromOpenAI: async (
-      request: BuildAndInsertEmbeddingsFromOpenAIRequest
-    ) => {
-      try {
-        if (openAIApiClient === null) {
-          throw new Error(
-            'OpenAI instance has not been initialized. Please initialize it using "client.initOpenai()"'
-          );
-        }
-        _sanitizeCollectionIdentifiersInRequest(request);
-
-        const { model, input_data, document_metadata, openai_user, ...rest } =
-          request;
-
-        const embeddingResponse = await openAIApiClient.createEmbedding({
-          model: model,
-          input: input_data,
-          user: openai_user,
-        });
-
-        const embeddingData = embeddingResponse.data.data;
-        if (embeddingData === null) {
-          const response: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
-            data: {
-              openai_response: embeddingResponse.data,
-              starpoint_response: null,
-            },
-            error: null
-          }
-          return response;
-        }
-
-        const sortedEmbeddingData = embeddingData.sort(
-          (a, b) => a.index - b.index
-        );
-        const embeddings = sortedEmbeddingData.map(
-          (embeddingData) => embeddingData.embedding
-        );
-
-        const requestedDocumentMetadata =
-          document_metadata !== null
-            ? document_metadata
-            : _backfillDocumentMetadata(input_data);
-
-        const starpointResponse = await _columnInsert({
-          embeddings,
-          document_metadata: requestedDocumentMetadata,
-          ...rest,
-        });
-
-        const returnedResponse: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
+        return {
           data: {
-            openai_response: embeddingResponse.data,
-            starpoint_response: starpointResponse.data
+            success: true,
           },
-          error: null
-        }
-
-        return returnedResponse
+          error: null,
+        };
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          const result: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
-            data: null,
-            error: err?.response?.data,
-          };
-          return result;
-        } else {
-          return {
-            error: err.message
-          }
-        }
+        return {
+          data: {
+            success: false,
+          },
+          error: err.message,
+        };
       }
     },
+    // uses "text-embedding-ada-002" openai model by default
+    buildAndInsertEmbeddings: async (
+      request: BuildAndInsertEmbeddingsRequest
+    ) => {
+      const insertRequest: BuildAndInsertEmbeddingsFromOpenAIRequest = {
+        ...request,
+        model: "text-embedding-ada-002",
+      };
+      return _buildAndInsertEmbeddingsFromOpenAI(insertRequest);
+    },
+    buildAndInsertEmbeddingsFromOpenAIModel:
+      _buildAndInsertEmbeddingsFromOpenAI,
   };
 };
 
@@ -555,7 +597,7 @@ export interface DeleteCollectionResponse {
 // INSERT
 interface Document {
   embedding: number[];
-  metadata: Option<Metadata>;
+  metadata?: Option<Metadata>;
 }
 
 interface InsertDocuments {
@@ -602,9 +644,9 @@ export interface DeleteResponse {
 
 // QUERY
 interface QueryDocuments {
-  query_embedding: Option<number[]>;
-  sql: Option<string>;
-  params: Option<Array<string | number>>;
+  query_embedding?: Option<number[]>;
+  sql?: Option<string>;
+  params?: Option<Array<string | number>>;
 }
 
 export type QueryRequest = ByWrapper<QueryDocuments>;
@@ -612,7 +654,7 @@ export type QueryRequest = ByWrapper<QueryDocuments>;
 export interface QueryResponse {
   collection_id: string;
   result_count: number;
-  sql: Option<string>;
+  sql?: Option<string>;
   results: {
     __id: string;
     __distance: number;
@@ -641,15 +683,23 @@ export interface InferSchemaResponse {
 
 // OPENAI
 export interface InitOpenAIRequest {
-  openai_key?: string | null;
-  openai_key_filepath?: string | null;
+  openai_key?: Option<string>;
+  openai_key_filepath?: Option<string>;
 }
+
+export interface InitOpenAIResponse {
+  success: boolean;
+}
+
+export type BuildAndInsertEmbeddingsRequest = ByWrapper<{
+  input_data: CreateEmbeddingRequestInput;
+}>;
 
 export type BuildAndInsertEmbeddingsFromOpenAIRequest = ByWrapper<{
   model: string;
   input_data: CreateEmbeddingRequestInput;
-  document_metadata: Option<Metadata[]>;
-  openai_user: Option<string>;
+  document_metadata?: Option<Metadata[]>;
+  openai_user?: Option<string>;
 }>;
 
 export interface BuildAndInsertEmbeddingsFromOpenAIResponse {

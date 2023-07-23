@@ -618,3 +618,16 @@ class Client(object):
             "openai_response": embedding_response,
             "starpoint_response": starpoint_response,
         }
+
+    def build_and_insert_embeddings(
+        self,
+        input_data: Union[str, Iterable[Any]],
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        return self.build_and_insert_embeddings_from_openai(
+            model="text-embedding-ada-002",
+            input_data=input_data,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
