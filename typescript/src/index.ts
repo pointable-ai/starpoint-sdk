@@ -167,18 +167,16 @@ const initialize = (
         DOCUMENTS_PATH,
         request
       );
-      const result: APIResult<InsertResponse, ErrorResponse> = {
+      return {
         data: response.data,
         error: null,
       };
-      return result;
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const result: APIResult<InsertResponse, ErrorResponse> = {
+        return {
           data: null,
           error: err?.response?.data,
         };
-        return result;
       } else {
         return {
           data: null,
@@ -215,11 +213,10 @@ const initialize = (
       return _insertDocument(insertRequest);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const result: APIResult<TransposeAndInsertResponse, ErrorResponse> = {
+        return {
           data: null,
           error: err?.response?.data,
         };
-        return result;
       } else {
         return {
           data: null,
@@ -284,18 +281,13 @@ const initialize = (
         ...rest,
       });
 
-      const returnedResponse: APIResult<
-        BuildAndInsertEmbeddingsFromOpenAIResponse,
-        ErrorResponse
-      > = {
+      return {
         data: {
           openai_response: embeddingResponse.data,
           starpoint_response: starpointResponse.data,
         },
         error: null,
       };
-
-      return returnedResponse;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         return {
@@ -333,11 +325,10 @@ const initialize = (
           COLLECTIONS_PATH,
           request
         );
-        const result: APIResult<CreateCollectionResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
@@ -365,11 +356,10 @@ const initialize = (
             data: request,
           }
         );
-        const result: APIResult<DeleteCollectionResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
@@ -414,11 +404,10 @@ const initialize = (
           DOCUMENTS_PATH,
           request
         );
-        const result: APIResult<UpdateResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
@@ -448,11 +437,10 @@ const initialize = (
             data: request,
           }
         );
-        const result: APIResult<DeleteResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
@@ -477,11 +465,10 @@ const initialize = (
           QUERY_PATH,
           request
         );
-        const result: APIResult<QueryResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
@@ -506,11 +493,10 @@ const initialize = (
           INFER_SCHEMA_PATH,
           request
         );
-        const result: APIResult<InferSchemaResponse, ErrorResponse> = {
+        return {
           data: response.data,
           error: null,
         };
-        return result;
       } catch (err) {
         if (axios.isAxiosError(err)) {
           return {
