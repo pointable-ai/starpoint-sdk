@@ -70,7 +70,7 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
 }
 
 const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
-  const fileStats = await fs.promises.stat(request.openaiKeyFilepath);
+  const fileStats = await fs.promises.stat(request.openai_key_filepath);
 
   if ("openai_key" in request && "openai_key_filepath" in request) {
     throw new Error(
@@ -201,8 +201,8 @@ const initialize = (
       _sanitizeCollectionIdentifiersInRequest(request);
 
       // transpose metadata and embeddings
-      const { embeddings, documentMetadata, ...rest } = request;
-      const columns = _zip(embeddings, documentMetadata);
+      const { embeddings, document_metadata, ...rest } = request;
+      const columns = _zip(embeddings, document_metadata);
       const documents: Document[] = columns.map((column) => {
         const [embedding, metadata] = column;
 
@@ -271,7 +271,7 @@ const initialize = (
     },
     deleteCollection: async (request: DeleteCollectionRequest) => {
       try {
-        if (!request.collectionId) {
+        if (!request.collection_id) {
           throw new Error("Did not specify collection_id in request");
         }
         // make api call
@@ -380,8 +380,8 @@ const initialize = (
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
         if (
-          request.queryEmbedding &&
-          request.queryEmbedding.some(
+          request.query_embedding &&
+          request.query_embedding.some(
             (embedding) => typeof embedding !== "number"
           )
         ) {
@@ -442,7 +442,7 @@ const initialize = (
       try {
         await _sanitizeInitOpenAIRequest(request);
         const configuration = new Configuration({
-          apiKey: request.openaiKey,
+          apiKey: request.openai_key,
         });
         openAIApiClient = new OpenAIApi(configuration);
       } catch (error) {
@@ -460,21 +460,21 @@ const initialize = (
         }
         _sanitizeCollectionIdentifiersInRequest(request);
 
-        const { model, inputData, documentMetadata, openaiUser, ...rest } =
+        const { model, input_data, document_metadata, openai_user, ...rest } =
           request;
 
         const embeddingResponse = await openAIApiClient.createEmbedding({
           model: model,
-          input: inputData,
-          user: openaiUser,
+          input: input_data,
+          user: openai_user,
         });
 
         const embeddingData = embeddingResponse.data.data;
         if (embeddingData === null) {
           const response: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
             data: {
-              openaiResponse: embeddingResponse.data,
-              starpointResponse: null,
+              openai_response: embeddingResponse.data,
+              starpoint_response: null,
             },
             error: null
           }
@@ -489,34 +489,36 @@ const initialize = (
         );
 
         const requestedDocumentMetadata =
-          documentMetadata !== null
-            ? documentMetadata
-            : _backfillDocumentMetadata(inputData);
+          document_metadata !== null
+            ? document_metadata
+            : _backfillDocumentMetadata(input_data);
 
         const starpointResponse = await _columnInsert({
           embeddings,
-          documentMetadata: requestedDocumentMetadata,
+          document_metadata: requestedDocumentMetadata,
           ...rest,
         });
 
         const returnedResponse: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
           data: {
-            openaiResponse: embeddingResponse.data,
-            starpointResponse
+            openai_response: embeddingResponse.data,
+            starpoint_response: starpointResponse.data
           },
           error: null
         }
 
         return returnedResponse
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
           const result: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse> = {
             data: null,
-            error: error?.response?.data,
+            error: err?.response?.data,
           };
           return result;
         } else {
-          throw error;
+          return {
+            error: err.message
+          }
         }
       }
     },
@@ -542,7 +544,7 @@ export interface CreateCollectionResponse {
 
 // DELETE
 export interface DeleteCollectionRequest {
-  collectionId: string;
+  collection_id: string;
 }
 
 export interface DeleteCollectionResponse {
@@ -563,18 +565,18 @@ interface InsertDocuments {
 export type InsertRequest = ByWrapper<InsertDocuments>;
 
 export interface InsertResponse {
-  collectionId: string;
-  documents: { id: string };
+  collection_id: string;
+  documents: { id: string }[];
 }
 
 export type TransposeAndInsertRequest = ByWrapper<{
   embeddings: number[][];
-  documentMetadata: Metadata[];
+  document_metadata: Metadata[];
 }>;
 
 export interface TransposeAndInsertResponse {
-  collectionId: string;
-  documents: { id: string };
+  collection_id: string;
+  documents: { id: string }[];
 }
 
 // UPDATE
@@ -586,7 +588,7 @@ interface UpdateDocument {
 export type UpdateRequest = ByWrapper<{ documents: UpdateDocument[] }>;
 
 export interface UpdateResponse {
-  collectionId: string;
+  collection_id: string;
   documents: { id: string }[];
 }
 
@@ -594,13 +596,13 @@ export interface UpdateResponse {
 export type DeleteRequest = ByWrapper<{ ids: string[] }>;
 
 export interface DeleteResponse {
-  collectionId: string;
-  documentIds: string[];
+  collection_id: string;
+  document_ids: string[];
 }
 
 // QUERY
 interface QueryDocuments {
-  queryEmbedding: Option<number[]>;
+  query_embedding: Option<number[]>;
   sql: Option<string>;
   params: Option<Array<string | number>>;
 }
@@ -608,8 +610,8 @@ interface QueryDocuments {
 export type QueryRequest = ByWrapper<QueryDocuments>;
 
 export interface QueryResponse {
-  collectionId: string;
-  resultCount: number;
+  collection_id: string;
+  result_count: number;
   sql: Option<string>;
   results: {
     __id: string;
@@ -634,35 +636,35 @@ interface InferredSchema {
 export type InferSchemaRequest = ByWrapper<{}>;
 
 export interface InferSchemaResponse {
-  inferredSchema: InferredSchema;
+  inferred_schema: InferredSchema;
 }
 
 // OPENAI
 export interface InitOpenAIRequest {
-  openaiKey: Option<string>;
-  openaiKeyFilepath: Option<string>;
+  openai_key?: string | null;
+  openai_key_filepath?: string | null;
 }
 
 export type BuildAndInsertEmbeddingsFromOpenAIRequest = ByWrapper<{
   model: string;
-  inputData: CreateEmbeddingRequestInput;
-  documentMetadata: Option<Metadata[]>;
-  openaiUser: Option<string>;
+  input_data: CreateEmbeddingRequestInput;
+  document_metadata: Option<Metadata[]>;
+  openai_user: Option<string>;
 }>;
 
 export interface BuildAndInsertEmbeddingsFromOpenAIResponse {
-  openaiResponse: CreateEmbeddingResponse;
-  starpointResponse: APIResult<InsertResponse, ErrorResponse>;
+  openai_response: CreateEmbeddingResponse;
+  starpoint_response: InsertResponse;
 }
 
 interface ByCollectionName {
-  collectionName: string;
+  collection_name: string;
 }
 
 type ByCollectionNameWrapper<T> = T & ByCollectionName;
 
 interface ByCollectionId {
-  collectionId: string;
+  collection_id: string;
 }
 
 type ByCollectionIdWrapper<T> = T & ByCollectionId;
@@ -676,7 +678,7 @@ interface Value {
 }
 
 export interface ErrorResponse {
-  errorMessage: string;
+  error_message: string;
 }
 
 export interface APIResult<T, ErrorResponse> {
