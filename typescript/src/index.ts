@@ -7,14 +7,27 @@ import {
   CreateEmbeddingResponse,
 } from "openai";
 import fs from "fs";
-const COLLECTIONS_PATH = "/api/v1/collections";
-const DOCUMENTS_PATH = "/api/v1/documents";
-const QUERY_PATH = "/api/v1/query";
-const INFER_SCHEMA_PATH = "/api/v1/infer_schema";
-
-const WRITER_URL = "https://writer.starpoint.ai";
-const READER_URL = "https://reader.starpoint.ai";
-const API_KEY_HEADER_NAME = "x-starpoint-key";
+import {
+  COLLECTIONS_PATH,
+  DOCUMENTS_PATH, QUERY_PATH,
+  INFER_SCHEMA_PATH,
+  WRITER_URL,
+  READER_URL,
+  API_KEY_HEADER_NAME,
+  MISSING_EMBEDDING_IN_DOCUMENT_ERROR,
+  MISSING_DOCUMENT_IDS_IN_DELETE_REQUEST_ERROR,
+  MISSING_DOCUMENT_IN_REQUEST_ERROR,
+  MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR,
+  MISSING_DOCUMENT_ID_IN_REQUEST_ERROR,
+  CREATE_COLLECTION_DIMENSIONALITY_LTE_ZERO_ERROR,
+  CREATE_COLLECTION_MISSING_NAME_ERROR,
+  CREATE_COLLECTION_MISSING_DIMENSIONALITY_ERROR,
+  MISSING_COLLECTION_IDENTIFIER_ERROR,
+  MISSING_COLLECTION_ID_ERROR,
+  MULTIPLE_COLLECTION_IDENTIFIER_ERROR,
+  NULL_COLLECTION_NAME_ERROR,
+  NULL_COLLECTION_ID_ERROR
+} from "./constants";
 
 const _setAndValidateHost = (host: string) => {
   if (!host) {
@@ -45,12 +58,12 @@ const _setAndValidateHost = (host: string) => {
 function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
   if ("collection_id" in request && "collection_name" in request) {
     throw new Error(
-      "Request has too many identifiers. Either pass in collection_id or collection_name, not both"
+      MULTIPLE_COLLECTION_IDENTIFIER_ERROR
     );
   }
   if (!("collection_id" in request) && !("collection_name" in request)) {
     throw new Error(
-      "Did not specify id or name identifier for collection in request"
+      MISSING_COLLECTION_IDENTIFIER_ERROR
     );
   }
   if (
@@ -58,14 +71,14 @@ function _sanitizeCollectionIdentifiersInRequest<T>(request: ByWrapper<T>) {
     "collection_name" in request &&
     !request.collection_name
   ) {
-    throw new Error("Name identifier cannot be null for collection in request");
+    throw new Error(NULL_COLLECTION_NAME_ERROR);
   }
   if (
     !("collection_name" in request) &&
     "collection_id" in request &&
     !request.collection_id
   ) {
-    throw new Error("Id cannot be null for collection in request");
+    throw new Error(NULL_COLLECTION_ID_ERROR);
   }
 }
 
@@ -120,48 +133,49 @@ const _backfillDocumentMetadata = (inputData: CreateEmbeddingRequestInput) => {
 
 function _zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   const length = Math.min(listA.length, listB.length);
-
-  return Array(length).map((_pair, index) => {
-    return [listA[index], listB[index]];
-  });
+  const result: [T, U][] = Array.from(({length}), (_pair, index) => {
+      return [listA[index], listB[index]];
+    });
+  return result;
 }
 
 const initialize = (
   apiKey: string,
-  writerHostURL?: string,
-  readerHostURL?: string
+  options?: {
+    writerHostURL?: string;
+    readerHostURL?: string;
+  }
 ) => {
   axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
 
   const writerClient = axios.create({
-    baseURL: writerHostURL ? _setAndValidateHost(writerHostURL) : WRITER_URL,
+    baseURL: options?.writerHostURL
+      ? _setAndValidateHost(options.writerHostURL)
+      : WRITER_URL,
   });
 
   const readerClient = axios.create({
-    baseURL: readerHostURL ? _setAndValidateHost(readerHostURL) : READER_URL,
+    baseURL: options?.readerHostURL
+      ? _setAndValidateHost(options.readerHostURL)
+      : READER_URL,
   });
 
   let openAIApiClient: OpenAIApi | null = null;
 
-  const _insertDocument = async (
+  const _insertDocuments = async (
     request: InsertRequest
   ): Promise<APIResult<InsertResponse, ErrorResponse>> => {
     try {
       // sanitize request
       _sanitizeCollectionIdentifiersInRequest(request);
-      if (!request.documents) {
-        throw new Error(
-          "Did not specify documents to insert into collection in request"
-        );
+      if (!request.documents || (request.documents && request.documents.length === 0)) {
+        throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
       if (
         request.documents &&
-        request.documents.some((document) => !document.embedding)
-      ) {
-        throw new Error(
-          "Did not specify an embedding for a document in the request"
-        );
-      }
+        request.documents.some((document) => !document.embedding || (document.embedding && document.embedding.length === 0))){
+          throw new Error(MISSING_EMBEDDING_IN_DOCUMENT_ERROR);
+        }
       // make api call
       const response = await writerClient.post<InsertResponse>(
         DOCUMENTS_PATH,
@@ -177,12 +191,11 @@ const initialize = (
           data: null,
           error: err?.response?.data,
         };
-      } else {
-        return {
-          data: null,
-          error: { error_message: err.message} ,
-        };
       }
+      return {
+        data: null,
+        error: { error_message: err.message },
+      };
     }
   };
 
@@ -210,7 +223,7 @@ const initialize = (
         documents,
       };
 
-      return _insertDocument(insertRequest);
+      return _insertDocuments(insertRequest);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         return {
@@ -309,15 +322,18 @@ const initialize = (
       try {
         // sanitize request
         if (!request.name) {
-          throw new Error("Did not specify name of collection in request");
+          throw new Error(CREATE_COLLECTION_MISSING_NAME_ERROR);
         }
-        if (!request.dimensionality) {
+        if (
+          request.dimensionality === undefined ||
+          request.dimensionality === null
+        ) {
           throw new Error(
-            "Did not specify dimensionality of collection in request"
+            CREATE_COLLECTION_MISSING_DIMENSIONALITY_ERROR
           );
         }
         if (request.dimensionality <= 0) {
-          throw new Error("Dimensionality cannot be less than or equal to 0");
+          throw new Error(CREATE_COLLECTION_DIMENSIONALITY_LTE_ZERO_ERROR);
         }
 
         // make api call
@@ -338,7 +354,7 @@ const initialize = (
         }
         return {
           data: null,
-          error: { error_message: err.message} ,
+          error: { error_message: err.message },
         };
       }
     },
@@ -347,7 +363,7 @@ const initialize = (
     ): Promise<APIResult<DeleteCollectionResponse, ErrorResponse>> => {
       try {
         if (!request.collection_id) {
-          throw new Error("Did not specify collection_id in request");
+          throw new Error(MISSING_COLLECTION_ID_ERROR);
         }
         // make api call
         const response = await writerClient.delete<DeleteCollectionResponse>(
@@ -369,34 +385,34 @@ const initialize = (
         }
         return {
           data: null,
-          error: { error_message: err.message} ,
+          error: { error_message: err.message },
         };
       }
     },
-    insert: _insertDocument,
-    update: async (
+    insertDocuments: _insertDocuments,
+    updateDocuments: async (
       request: UpdateRequest
     ): Promise<APIResult<UpdateResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.documents) {
-          throw new Error("Did not specify documents to update in request");
+        if (!request.documents || (request.documents && request.documents.length === 0)) {
+          throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
         }
         if (
           request.documents &&
           request.documents.some((document) => !document.id)
         ) {
           throw new Error(
-            "Did not specify an id for a document in the request"
+            MISSING_DOCUMENT_ID_IN_REQUEST_ERROR
           );
         }
         if (
           request.documents &&
-          request.documents.some((document) => !document.metadata)
+          request.documents.some((document) => !document.metadata || (document.metadata && document.metadata.length === 0))
         ) {
           throw new Error(
-            "Did not specify metadata for a document in the request"
+            MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR
           );
         }
         // make api call
@@ -417,18 +433,18 @@ const initialize = (
         }
         return {
           data: null,
-          error: { error_message: err.message} ,
+          error: { error_message: err.message },
         };
       }
     },
-    delete: async (
+    deleteDocuments: async (
       request: DeleteRequest
     ): Promise<APIResult<DeleteResponse, ErrorResponse>> => {
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.ids) {
-          throw new Error("Did not specify documents to delete in request");
+        if (!request.ids || (request.ids && request.ids.length === 0)) {
+          throw new Error(MISSING_DOCUMENT_IDS_IN_DELETE_REQUEST_ERROR);
         }
         // make api call
         const response = await writerClient.delete<DeleteResponse>(
@@ -450,11 +466,11 @@ const initialize = (
         }
         return {
           data: null,
-          error: { error_message: err.message} ,
+          error: { error_message: err.message },
         };
       }
     },
-    query: async (
+    queryDocuments: async (
       request: QueryRequest
     ): Promise<APIResult<QueryResponse, ErrorResponse>> => {
       try {
