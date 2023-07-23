@@ -583,7 +583,10 @@ class Client(object):
         embedding_data = embedding_response.get("data")
         if embedding_data is None:
             LOGGER.warning(NO_EMBEDDING_DATA_FOUND)
-            return embedding_response
+            return {
+                "openai_response": embedding_response,
+                "starpoint_response": None,
+            }
 
         if document_metadatas is None:
             LOGGER.info(
@@ -598,7 +601,7 @@ class Client(object):
         try:
             sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
             embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
-            self.column_insert(
+            starpoint_response = self.column_insert(
                 embeddings=embeddings,
                 document_metadatas=document_metadatas,
                 collection_id=collection_id,
@@ -609,5 +612,22 @@ class Client(object):
                 "An exception has occurred while trying to load embeddings into the db. "
                 f"This is the error:\n{e}"
             )
+            starpoint_response = {"error": str(e)}
 
-        return embedding_response
+        return {
+            "openai_response": embedding_response,
+            "starpoint_response": starpoint_response,
+        }
+
+    def build_and_insert_embeddings(
+        self,
+        input_data: Union[str, Iterable[Any]],
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        return self.build_and_insert_embeddings_from_openai(
+            model="text-embedding-ada-002",
+            input_data=input_data,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )

@@ -15,8 +15,10 @@ import {
   DeleteCollectionResponse,
   CreateCollectionResponse,
   TransposeAndInsertResponse,
+  InitOpenAIRequest,
 } from "../src/index";
 import axios from "axios";
+import openai from "openai";
 import { v4 as uuid4 } from "uuid";
 
 import {
@@ -40,6 +42,9 @@ import {
 // Mock Axios
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+// Mock OpenAI
+jest.mock("openai");
 
 beforeAll(() => {
   mockedAxios.create.mockReturnThis();
@@ -297,7 +302,7 @@ describe("columnInsert", () => {
         [0.1, 0.2],
         [0.1, 0.4],
       ],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
@@ -329,7 +334,7 @@ describe("columnInsert", () => {
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
       embeddings: [[0.1, 0.2]],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
@@ -360,7 +365,7 @@ describe("columnInsert", () => {
         [0.1, 0.2],
         [0.4, 0.3],
       ],
-      documentMetadata: [{ car: 1, horse: "neigh" }, ,],
+      document_metadata: [{ car: 1, horse: "neigh" }, ,],
     };
     const mockInsertRequest = {
       collection_id: MOCK_COLLECTION_ID,
@@ -388,7 +393,7 @@ describe("columnInsert", () => {
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
       embeddings: [],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
@@ -472,3 +477,38 @@ describe("deleteCollection", () => {
     });
   });
 });
+
+describe("buildAndInsertEmbeddingsWithOpenAIModel", () => {
+  it("should return 200 response given a valid request", async () => {
+    // const MOCK_COLLECTION_ID = uuid4();
+    // const MOCK_API_KEY = uuid4();
+    // const dbClient = db.initialize(MOCK_API_KEY);
+    // const MOCK_OPENAI_KEY = uuid4();
+    // const mockRequest = {
+    //   collection_id: MOCK_COLLECTION_ID,
+    //   model: "test-embedding-ada-002",
+    //   input_data: "this is test input"
+    // }
+
+    // await dbClient.initOpenAI({openai_key: MOCK_OPENAI_KEY});
+    // await dbClient.buildAndInsertEmbeddingsFromOpenAIModel(mockRequest);
+
+    // expect(mockedAxios.post).toHaveBeenCalled();
+  })
+  it("should return error if openai client is not initialized", async () => {
+    // const MOCK_COLLECTION_ID = uuid4();
+    // const MOCK_API_KEY = uuid4();
+    // const dbClient = db.initialize(MOCK_API_KEY);
+    // const MOCK_OPENAI_KEY = uuid4();
+
+
+    // const mockRequest = {
+    //   collection_id: MOCK_COLLECTION_ID,
+    //   model: "test-embedding-ada-002",
+    //   input_data: "this is test input"
+    // }
+    // await dbClient.buildAndInsertEmbeddingsFromOpenAIModel(mockRequest);
+
+    // expect(mockedAxios.post).not.toHaveBeenCalled();
+  })
+})

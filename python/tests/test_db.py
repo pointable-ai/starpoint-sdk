@@ -744,13 +744,17 @@ def test_client_build_and_insert_embeddings_from_openai_input_string_success(
     mock_input = "mock_input"
     mock_model = "mock-model"
 
-    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+    expected_build_and_insert_response = {
+        "openai_response": expected_embedding_response,
+        "starpoint_response": mock_writer().column_insert(),
+    }
+
+    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
         model=mock_model, input_data=mock_input
     )
 
-    assert actual_embedding_response == expected_embedding_response
+    assert actual_build_and_insert_response == expected_build_and_insert_response
     collision_mock.assert_called_once()
-    mock_writer().column_insert.assert_called_once()
 
     # independently check args since embeddings is a map() generator and cannot be checked against simple equality
     insert_call_kwargs = mock_writer().column_insert.call_args.kwargs
@@ -789,13 +793,17 @@ def test_client_build_and_insert_embeddings_from_openai_input_list_success(
     mock_input = ["mock_input1", "mock_input2"]
     mock_model = "mock-model"
 
-    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+    expected_build_and_insert_response = {
+        "openai_response": expected_embedding_response,
+        "starpoint_response": mock_writer().column_insert(),
+    }
+
+    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
         model=mock_model, input_data=mock_input
     )
 
-    assert actual_embedding_response == expected_embedding_response
+    assert actual_build_and_insert_response == expected_build_and_insert_response
     collision_mock.assert_called_once()
-    mock_writer().column_insert.assert_called_once()
 
     # independently check args since embeddings is a map() generator and cannot be checked against simple equality
     insert_call_kwargs = mock_writer().column_insert.call_args.kwargs
@@ -830,11 +838,16 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
     mock_input = "mock_input"
     mock_model = "mock-model"
 
-    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+    expected_build_and_insert_response = {
+        "openai_response": expected_embedding_response,
+        "starpoint_response": None,
+    }
+
+    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
         model=mock_model, input_data=mock_input
     )
 
-    assert actual_embedding_response == expected_embedding_response
+    assert actual_build_and_insert_response == expected_build_and_insert_response
     collision_mock.assert_called_once()
     mock_writer().column_insert.assert_not_called()
     logger_mock.warning.assert_called_once_with(db.NO_EMBEDDING_DATA_FOUND)
@@ -853,6 +866,8 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     openai_mock = MagicMock()
     client.openai = openai_mock
 
+    column_insert_error_message = "Test Exception"
+
     expected_embedding_response = {
         "data": [
             {
@@ -863,7 +878,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     }
     openai_mock.Embedding.create.return_value = expected_embedding_response
 
-    mock_writer().column_insert.side_effect = RuntimeError("Test Exception")
+    mock_writer().column_insert.side_effect = RuntimeError(column_insert_error_message)
 
     logger_mock = MagicMock()
     monkeypatch.setattr(db, "LOGGER", logger_mock)
@@ -871,10 +886,15 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     mock_input = "mock_input"
     mock_model = "mock-model"
 
-    actual_embedding_response = client.build_and_insert_embeddings_from_openai(
+    expected_build_and_insert_response = {
+        "openai_response": expected_embedding_response,
+        "starpoint_response": {"error": column_insert_error_message},
+    }
+
+    build_and_insert_response = client.build_and_insert_embeddings_from_openai(
         model=mock_model, input_data=mock_input
     )
 
-    assert actual_embedding_response == expected_embedding_response
+    assert build_and_insert_response == expected_build_and_insert_response
     collision_mock.assert_called_once()
     logger_mock.error.assert_called_once()
