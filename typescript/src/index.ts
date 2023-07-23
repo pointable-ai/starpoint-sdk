@@ -511,7 +511,7 @@ const initialize = (
       }
     },
     columnInsert: _columnInsert,
-    initOpenAI: async (request: InitOpenAIRequest): Promise<APIResult<InitOpenAIResponse, ErrorResponse> => {
+    initOpenAI: async (request: InitOpenAIRequest): Promise<APIResult<InitOpenAIResponse, ErrorResponse>> => {
       try {
         await _sanitizeInitOpenAIRequest(request);
         const configuration = new Configuration({
@@ -526,9 +526,7 @@ const initialize = (
         };
       } catch (err) {
         return {
-          data: {
-            success: false,
-          },
+          data: null,
           error: { error_message: err.message} ,
         };
       }
@@ -536,7 +534,7 @@ const initialize = (
     // uses "text-embedding-ada-002" openai model by default
     buildAndInsertEmbeddings: async (
       request: BuildAndInsertEmbeddingsRequest
-    ) => {
+    ): Promise<APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse>> => {
       const insertRequest: BuildAndInsertEmbeddingsFromOpenAIRequest = {
         ...request,
         model: "text-embedding-ada-002",
