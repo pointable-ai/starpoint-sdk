@@ -14,6 +14,11 @@ import {
   WRITER_URL,
   READER_URL,
   API_KEY_HEADER_NAME,
+  MISSING_OPENAI_KEY_IDENTIFIER_ERROR,
+  MULTIPLE_OPENAI_KEY_IDENTIFIER_ERROR,
+  NULL_OPENAI_KEY_FILEPATH_IDENTIFIER_ERROR,
+  NULL_OPENAI_KEY_IDENTIFIER_ERROR,
+  OPENAI_KEY_FILEPATH_INVALID_ERROR,
   MISSING_EMBEDDING_IN_DOCUMENT_ERROR,
   MISSING_DOCUMENT_IDS_IN_DELETE_REQUEST_ERROR,
   MISSING_DOCUMENT_IN_REQUEST_ERROR,
@@ -26,7 +31,8 @@ import {
   MISSING_COLLECTION_ID_ERROR,
   MULTIPLE_COLLECTION_IDENTIFIER_ERROR,
   NULL_COLLECTION_NAME_ERROR,
-  NULL_COLLECTION_ID_ERROR
+  NULL_COLLECTION_ID_ERROR,
+  OPEN_AI_INSTANCE_INIT_ERROR
 } from "./constants";
 
 const _setAndValidateHost = (host: string) => {
@@ -87,12 +93,12 @@ const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
 
   if ("openai_key" in request && "openai_key_filepath" in request) {
     throw new Error(
-      "Request has too many identifiers. Either pass in openai_key or openai_key_filepath, not both"
+      MULTIPLE_OPENAI_KEY_IDENTIFIER_ERROR
     );
   }
   if (!("openai_key" in request) && !("openai_key_filepath" in request)) {
     throw new Error(
-      "Did not specify openai_key or openai_key_filepath in request"
+      MISSING_OPENAI_KEY_IDENTIFIER_ERROR
     );
   }
   if (
@@ -100,14 +106,14 @@ const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
     "openai_key" in request &&
     !request.openai_key
   ) {
-    throw new Error("OpenAI key cannot be null in request");
+    throw new Error(NULL_OPENAI_KEY_IDENTIFIER_ERROR);
   }
   if (
     !("openai_key" in request) &&
     "openai_key_filepath" in request &&
     !request.openai_key_filepath
   ) {
-    throw new Error("OpenAI key filepath cannot be null in request");
+    throw new Error(NULL_OPENAI_KEY_FILEPATH_IDENTIFIER_ERROR);
   }
   if (
     !("openai_key" in request) &&
@@ -115,7 +121,7 @@ const _sanitizeInitOpenAIRequest = async (request: InitOpenAIRequest) => {
     request.openai_key_filepath &&
     fileStats.isFile()
   ) {
-    throw new Error("OpenAI key filepath must be a file in request");
+    throw new Error(OPENAI_KEY_FILEPATH_INVALID_ERROR);
   }
 };
 
@@ -247,7 +253,7 @@ const initialize = (
     try {
       if (openAIApiClient === null) {
         throw new Error(
-          'OpenAI instance has not been initialized. Please initialize it using "client.initOpenai()"'
+          OPEN_AI_INSTANCE_INIT_ERROR
         );
       }
       _sanitizeCollectionIdentifiersInRequest(request);

@@ -297,7 +297,7 @@ describe("columnInsert", () => {
         [0.1, 0.2],
         [0.1, 0.4],
       ],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
@@ -329,7 +329,7 @@ describe("columnInsert", () => {
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
       embeddings: [[0.1, 0.2]],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
@@ -360,7 +360,7 @@ describe("columnInsert", () => {
         [0.1, 0.2],
         [0.4, 0.3],
       ],
-      documentMetadata: [{ car: 1, horse: "neigh" }, ,],
+      document_metadata: [{ car: 1, horse: "neigh" }, ,],
     };
     const mockInsertRequest = {
       collection_id: MOCK_COLLECTION_ID,
@@ -388,7 +388,7 @@ describe("columnInsert", () => {
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
       embeddings: [],
-      documentMetadata: [
+      document_metadata: [
         { car: 1, horse: "neigh" },
         { car: 2, horse: "bleh" },
       ],
