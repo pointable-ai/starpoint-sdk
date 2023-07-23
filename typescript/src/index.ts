@@ -110,12 +110,12 @@ const initialize = (
     try {
       // sanitize request
       _sanitizeCollectionIdentifiersInRequest(request);
-      if (!request.documents) {
+      if (!request.documents || (request.documents && request.documents.length === 0)) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
       if (
         request.documents &&
-        request.documents.some((document) => !document.embedding)){
+        request.documents.some((document) => !document.embedding || (document.embedding && document.embedding.length === 0))){
           throw new Error(MISSING_EMBEDDING_IN_DOCUMENT_ERROR);
         }
       // make api call
@@ -222,7 +222,7 @@ const initialize = (
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.documents) {
+        if (!request.documents || (request.documents && request.documents.length === 0)) {
           throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
         }
         if (
@@ -235,7 +235,7 @@ const initialize = (
         }
         if (
           request.documents &&
-          request.documents.some((document) => !document.metadata)
+          request.documents.some((document) => !document.metadata || (document.metadata && document.metadata.length === 0))
         ) {
           throw new Error(
             MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR
@@ -269,7 +269,7 @@ const initialize = (
       try {
         // sanitize request
         _sanitizeCollectionIdentifiersInRequest(request);
-        if (!request.ids) {
+        if (!request.ids || (request.ids && request.ids.length === 0)) {
           throw new Error(MISSING_DOCUMENT_IDS_IN_DELETE_REQUEST_ERROR);
         }
         // make api call

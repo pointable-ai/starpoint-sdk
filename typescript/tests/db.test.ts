@@ -109,7 +109,6 @@ describe("insertDocuments", () => {
     };
 
     await dbClient.insertDocuments(mockRequest);
-    expect(dbClient.insertDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(DOCUMENTS_PATH, mockRequest);
   });
   it("returns an error if embedding for a document is not provided", async () => {
@@ -127,7 +126,6 @@ describe("insertDocuments", () => {
     };
 
     await dbClient.insertDocuments(mockRequest as any);
-    expect(dbClient.insertDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("returns an error if document is not provided", async () => {
@@ -139,7 +137,6 @@ describe("insertDocuments", () => {
     };
 
     await dbClient.insertDocuments(mockRequest as any);
-    expect(dbClient.insertDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
 });
@@ -161,7 +158,6 @@ describe("updateDocuments", () => {
     };
 
     await dbClient.updateDocuments(mockRequest);
-    expect(dbClient.updateDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.patch).toHaveBeenCalledWith(DOCUMENTS_PATH, mockRequest);
   });
   it("returns an error if documents is not provided", async () => {
@@ -174,7 +170,6 @@ describe("updateDocuments", () => {
     };
 
     await dbClient.updateDocuments(mockRequest);
-    expect(dbClient.updateDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("returns an error if documents in request do not have an id", async () => {
@@ -191,7 +186,6 @@ describe("updateDocuments", () => {
     };
 
     await dbClient.updateDocuments(mockRequest as any);
-    expect(dbClient.updateDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("returns an error if documents in request do not have metadata", async () => {
@@ -214,7 +208,6 @@ describe("updateDocuments", () => {
     };
     mockedAxios.patch.mockResolvedValue(mockResponse);
     await dbClient.updateDocuments(mockRequest as any);
-    expect(dbClient.updateDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
 });
@@ -231,7 +224,6 @@ describe("deleteDocuments", () => {
     };
 
     await dbClient.deleteDocuments(mockRequest);
-    expect(dbClient.deleteDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.delete).toHaveBeenCalledWith(DOCUMENTS_PATH, {
       data: mockRequest,
     });
@@ -246,7 +238,6 @@ describe("deleteDocuments", () => {
     };
 
     await dbClient.deleteDocuments(mockRequest);
-    expect(dbClient.deleteDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.delete).not.toHaveBeenCalled();
   });
 });
@@ -261,7 +252,6 @@ describe("queryDocuments", () => {
     };
 
     await dbClient.queryDocuments(mockRequest);
-    expect(dbClient.queryDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(QUERY_PATH, mockRequest);
   });
   it("should return an 200 response if query embedding is given", async () => {
@@ -274,7 +264,6 @@ describe("queryDocuments", () => {
     };
 
     await dbClient.queryDocuments(mockRequest as any);
-    expect(dbClient.queryDocuments).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(QUERY_PATH, mockRequest);
   });
 
@@ -290,7 +279,6 @@ describe("inferSchema", () => {
     };
 
     await dbClient.inferSchema(mockRequest);
-    expect(dbClient.inferSchema).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       INFER_SCHEMA_PATH,
       mockRequest
@@ -329,7 +317,6 @@ describe("columnInsert", () => {
     };
 
     await dbClient.columnInsert(mockRequest);
-    expect(dbClient.columnInsert).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       DOCUMENTS_PATH,
       mockInsertRequest
@@ -358,7 +345,6 @@ describe("columnInsert", () => {
     };
 
     await dbClient.columnInsert(mockRequest);
-    expect(dbClient.columnInsert).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       DOCUMENTS_PATH,
       mockInsertRequest
@@ -390,7 +376,6 @@ describe("columnInsert", () => {
     };
 
     await dbClient.columnInsert(mockRequest);
-    expect(dbClient.columnInsert).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       DOCUMENTS_PATH,
       mockInsertRequest
@@ -410,7 +395,6 @@ describe("columnInsert", () => {
     };
 
     await dbClient.columnInsert(mockRequest);
-    expect(dbClient.columnInsert).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
 });
@@ -426,7 +410,6 @@ describe("createCollection", () => {
     };
 
     await dbClient.createCollection(mockRequest);
-    expect(dbClient.createCollection).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       COLLECTIONS_PATH,
       mockRequest
@@ -446,7 +429,6 @@ describe("createCollection", () => {
 
     mockedAxios.post.mockResolvedValue(mockResponse);
     await dbClient.createCollection(mockRequest);
-    expect(dbClient.createCollection).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("should return an error if dimensionality not specified", async () => {
@@ -459,7 +441,6 @@ describe("createCollection", () => {
     };
 
     await dbClient.createCollection(mockRequest);
-    expect(dbClient.createCollection).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("should return an error if dimensionality less than or equal to zero", async () => {
@@ -472,7 +453,6 @@ describe("createCollection", () => {
     };
 
     await dbClient.createCollection(mockRequest);
-    expect(dbClient.createCollection).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
 });
@@ -487,7 +467,6 @@ describe("deleteCollection", () => {
     };
 
     await dbClient.deleteCollection(mockRequest);
-    expect(dbClient.deleteCollection).toHaveBeenCalledWith(mockRequest);
     expect(mockedAxios.delete).toHaveBeenCalledWith(COLLECTIONS_PATH, {
       data: mockRequest,
     });
