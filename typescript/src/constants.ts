@@ -40,3 +40,5 @@ export const CREATE_COLLECTION_MISSING_DIMENSIONALITY_ERROR =
   "Did not specify dimensionality of collection in request";
 export const CREATE_COLLECTION_DIMENSIONALITY_LTE_ZERO_ERROR =
   "Dimensionality cannot be less than or equal to 0";
+export const MISSING_HOST_ERROR =
+  "No host value provided. A host must be provided.";

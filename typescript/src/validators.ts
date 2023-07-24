@@ -3,6 +3,7 @@ import isURL from "validator/lib/isURL";
 import { ByWrapper } from "./common-types";
 import {
   MISSING_COLLECTION_IDENTIFIER_ERROR,
+  MISSING_HOST_ERROR,
   MULTIPLE_COLLECTION_IDENTIFIER_ERROR,
   NULL_COLLECTION_ID_ERROR,
   NULL_COLLECTION_NAME_ERROR,
@@ -10,7 +11,7 @@ import {
 
 export const setAndValidateHost = (host: string) => {
   if (!host) {
-    throw new Error("No host value provided. A host must be provided.");
+    throw new Error(MISSING_HOST_ERROR);
   } else if (
     !isURL(host, {
       require_tld: false,

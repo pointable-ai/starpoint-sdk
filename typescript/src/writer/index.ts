@@ -40,15 +40,7 @@ export const insertDocumentsFactory =
       if (!request.documents || request.documents.length === 0) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
-      // if !request.documents.all((document) => document.embedding?.length !== 0)
-      if (
-        request.documents &&
-        request.documents.some(
-          (document) => !document.embedding || document.embedding.length === 0
-        )
-      ) {
-        throw new Error(MISSING_EMBEDDING_IN_DOCUMENT_ERROR);
-      }
+
       // make api call
       const response = await writerClient.post<InsertResponse>(
         DOCUMENTS_PATH,
@@ -105,20 +97,6 @@ export const updateDocumentsFactory =
       sanitizeCollectionIdentifiersInRequest(request);
       if (!request.documents || request.documents.length === 0) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
-      }
-      if (
-        request.documents &&
-        request.documents.some((document) => !document.id)
-      ) {
-        throw new Error(MISSING_DOCUMENT_ID_IN_REQUEST_ERROR);
-      }
-      if (
-        request.documents &&
-        request.documents.some(
-          (document) => !document.metadata || document.metadata.length === 0
-        )
-      ) {
-        throw new Error(MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR);
       }
       // make api call
       const response = await writerClient.patch<UpdateResponse>(
