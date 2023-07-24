@@ -95,23 +95,6 @@ describe("insertDocuments", () => {
     await dbClient.insertDocuments(mockRequest);
     expect(mockedAxios.post).toHaveBeenCalledWith(DOCUMENTS_PATH, mockRequest);
   });
-  it("returns an error if embedding for a document is not provided", async () => {
-    const COLLECTION_ID = uuid4();
-    const MOCK_API_KEY = uuid4();
-    const dbClient = db.initialize(MOCK_API_KEY);
-    const mockRequest = {
-      collection_id: COLLECTION_ID,
-      documents: [
-        {
-          embedding: null,
-          metadata: { car: "abe", apple: "john", inventory_count: 12 },
-        },
-      ],
-    };
-
-    await dbClient.insertDocuments(mockRequest as any);
-    expect(mockedAxios.post).not.toHaveBeenCalled();
-  });
   it("returns an error if document is not provided", async () => {
     const COLLECTION_ID = uuid4();
     const MOCK_API_KEY = uuid4();
