@@ -10,8 +10,12 @@ import {
   MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR,
   CREATE_COLLECTION_MISSING_NAME_ERROR,
 } from "../src/constants";
-import { UpdateRequest, DeleteRequest, InsertRequest } from "../dist/types";
-import { TransposeAndInsertRequest } from "../src/writer/types";
+import {
+  UpdateRequest,
+  DeleteRequest,
+  InsertRequest,
+  TransposeAndInsertRequest,
+} from "../src/writer/types";
 import { db } from "../src/index";
 
 // Mock Axios
