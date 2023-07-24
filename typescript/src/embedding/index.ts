@@ -4,6 +4,7 @@ import { EMBEDDING_URL, EMBED_PATH } from "../constants";
 import { APIResult, ErrorResponse } from "../common-types";
 import { TextEmbeddingRequest, TextEmbeddingResponse } from "./types";
 import { validateEmbeddingModel } from "./validators";
+import { handleError } from "../utility";
 
 export const initEmbedding = (embeddingHostURL?: string) => {
   return axios.create({
@@ -17,7 +18,7 @@ export const embedFactory =
   (embeddingClient: AxiosInstance) =>
   async (
     req: TextEmbeddingRequest
-  ): Promise<APIResult<TextEmbeddingResponse, ErrorResponse>> => {
+  ): Promise<APIResult<TextEmbeddingResponse>> => {
     try {
       // sanitize request
       validateEmbeddingModel(req.model);
@@ -31,15 +32,6 @@ export const embedFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };

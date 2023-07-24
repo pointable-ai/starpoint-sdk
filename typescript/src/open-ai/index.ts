@@ -4,12 +4,11 @@ import { backfillDocumentMetadata } from "./utility";
 import {
   BuildAndInsertEmbeddingsFromOpenAIRequest,
   BuildAndInsertEmbeddingsFromOpenAIResponse,
-  InsertResponse,
-  TransposeAndInsertRequest,
-} from "..";
+} from "./types";
 import { OPENAI_INSTANCE_INIT_ERROR } from "./constants";
 import { sanitizeCollectionIdentifiersInRequest } from "../validators";
-import axios from "axios";
+import { InsertResponse, TransposeAndInsertRequest } from "../writer/types";
+import { handleError } from "../utility";
 
 export interface InitOpenAIRequest {
   openai_key?: Option<string>;
@@ -28,78 +27,72 @@ export const initOpenAI = (openaiKey: string) => {
   return new OpenAIApi(configuration);
 };
 
-export const buildAndInsertEmbeddingsFromOpenAI = async (
-  openAIApiClient: OpenAIApi | null,
-  columnInsert: (
-    req: TransposeAndInsertRequest
-  ) => Promise<APIResult<InsertResponse, ErrorResponse>>,
-  request: BuildAndInsertEmbeddingsFromOpenAIRequest
-): Promise<
-  APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse>
-> => {
-  try {
-    if (openAIApiClient === null) {
-      throw new Error(OPENAI_INSTANCE_INIT_ERROR);
-    }
-    sanitizeCollectionIdentifiersInRequest(request);
+export const buildAndInsertEmbeddingsFromOpenAIFactory =
+  (
+    openAIApiClient: OpenAIApi | null,
+    columnInsert: (
+      req: TransposeAndInsertRequest
+    ) => Promise<APIResult<InsertResponse, ErrorResponse>>
+  ) =>
+  async (
+    request: BuildAndInsertEmbeddingsFromOpenAIRequest
+  ): Promise<
+    APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse>
+  > => {
+    try {
+      if (openAIApiClient === null) {
+        throw new Error(OPENAI_INSTANCE_INIT_ERROR);
+      }
+      sanitizeCollectionIdentifiersInRequest(request);
 
-    const { model, input_data, document_metadata, openai_user, ...rest } =
-      request;
+      const { model, input_data, document_metadata, openai_user, ...rest } =
+        request;
 
-    const embeddingResponse = await openAIApiClient.createEmbedding({
-      model: model,
-      input: input_data,
-      user: openai_user,
-    });
+      const embeddingResponse = await openAIApiClient.createEmbedding({
+        model: model,
+        input: input_data,
+        user: openai_user,
+      });
 
-    const embeddingData = embeddingResponse.data.data;
-    if (embeddingData === null) {
-      const response: APIResult<
-        BuildAndInsertEmbeddingsFromOpenAIResponse,
-        ErrorResponse
-      > = {
+      const embeddingData = embeddingResponse.data.data;
+      if (embeddingData === null) {
+        const response: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse> =
+          {
+            data: {
+              openai_response: embeddingResponse.data,
+              starpoint_response: null,
+            },
+            error: null,
+          };
+        return response;
+      }
+
+      const sortedEmbeddingData = embeddingData.sort(
+        (a, b) => a.index - b.index
+      );
+      const embeddings = sortedEmbeddingData.map(
+        (embeddingData) => embeddingData.embedding
+      );
+
+      const requestedDocumentMetadata =
+        document_metadata !== null
+          ? document_metadata
+          : backfillDocumentMetadata(input_data);
+
+      const starpointResponse = await columnInsert({
+        embeddings,
+        document_metadata: requestedDocumentMetadata,
+        ...rest,
+      });
+
+      return {
         data: {
           openai_response: embeddingResponse.data,
-          starpoint_response: null,
+          starpoint_response: starpointResponse.data,
         },
         error: null,
       };
-      return response;
+    } catch (err) {
+      return handleError(err);
     }
-
-    const sortedEmbeddingData = embeddingData.sort((a, b) => a.index - b.index);
-    const embeddings = sortedEmbeddingData.map(
-      (embeddingData) => embeddingData.embedding
-    );
-
-    const requestedDocumentMetadata =
-      document_metadata !== null
-        ? document_metadata
-        : backfillDocumentMetadata(input_data);
-
-    const starpointResponse = await columnInsert({
-      embeddings,
-      document_metadata: requestedDocumentMetadata,
-      ...rest,
-    });
-
-    return {
-      data: {
-        openai_response: embeddingResponse.data,
-        starpoint_response: starpointResponse.data,
-      },
-      error: null,
-    };
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      return {
-        data: null,
-        error: err?.response?.data,
-      };
-    }
-    return {
-      data: null,
-      error: { error_message: err.message },
-    };
-  }
-};
+  };

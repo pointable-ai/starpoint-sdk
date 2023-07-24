@@ -24,9 +24,9 @@ export interface ErrorResponse {
   error_message: string;
 }
 
-export interface APIResult<T, ErrorResponse> {
+export interface APIResult<T, U = ErrorResponse> {
   data: T | null;
-  error: ErrorResponse | null;
+  error: U | null;
 }
 
 export type Option<T> = T | null | undefined;

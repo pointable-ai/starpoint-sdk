@@ -22,8 +22,8 @@ import {
   UpdateRequest,
   UpdateResponse,
 } from "./types";
-import { APIResult, Document, ErrorResponse } from "../common-types";
-import { zip } from "../utility";
+import { APIResult, Document } from "../common-types";
+import { handleError, zip } from "../utility";
 
 export const initWriter = (writerHostURL?: string) => {
   return axios.create({
@@ -33,24 +33,17 @@ export const initWriter = (writerHostURL?: string) => {
 
 export const insertDocumentsFactory =
   (writerClient: AxiosInstance) =>
-  async (
-    request: InsertRequest
-  ): Promise<APIResult<InsertResponse, ErrorResponse>> => {
+  async (request: InsertRequest): Promise<APIResult<InsertResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
-      if (
-        !request.documents ||
-        (request.documents && request.documents.length === 0)
-      ) {
+      if (!request.documents || request.documents.length === 0) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
       if (
         request.documents &&
         request.documents.some(
-          (document) =>
-            !document.embedding ||
-            (document.embedding && document.embedding.length === 0)
+          (document) => !document.embedding || document.embedding.length === 0
         )
       ) {
         throw new Error(MISSING_EMBEDDING_IN_DOCUMENT_ERROR);
@@ -65,24 +58,17 @@ export const insertDocumentsFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
+      return handleError(err);
     }
   };
 
-const columnInsertFactory =
+export const columnInsertFactory =
   (
-    insertDocuments: (
-      req: InsertRequest
-    ) => Promise<APIResult<InsertResponse, ErrorResponse>>
+    insertDocuments: (req: InsertRequest) => Promise<APIResult<InsertResponse>>
   ) =>
   async (
     request: TransposeAndInsertRequest
-  ): Promise<APIResult<TransposeAndInsertResponse, ErrorResponse>> => {
+  ): Promise<APIResult<TransposeAndInsertResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
@@ -106,32 +92,17 @@ const columnInsertFactory =
 
       return insertDocuments(insertRequest);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      } else {
-        return {
-          data: null,
-          error: { error_message: err.message },
-        };
-      }
+      return handleError(err);
     }
   };
 
-const updateDocumentsFactory =
+export const updateDocumentsFactory =
   (writerClient: AxiosInstance) =>
-  async (
-    request: UpdateRequest
-  ): Promise<APIResult<UpdateResponse, ErrorResponse>> => {
+  async (request: UpdateRequest): Promise<APIResult<UpdateResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
-      if (
-        !request.documents ||
-        (request.documents && request.documents.length === 0)
-      ) {
+      if (!request.documents || request.documents.length === 0) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
       if (
@@ -143,9 +114,7 @@ const updateDocumentsFactory =
       if (
         request.documents &&
         request.documents.some(
-          (document) =>
-            !document.metadata ||
-            (document.metadata && document.metadata.length === 0)
+          (document) => !document.metadata || document.metadata.length === 0
         )
       ) {
         throw new Error(MISSING_DOCUMENT_METADATA_IN_REQUEST_ERROR);
@@ -160,24 +129,13 @@ const updateDocumentsFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };
 
-const deleteDocumentsFactory =
+export const deleteDocumentsFactory =
   (writerClient: AxiosInstance) =>
-  async (
-    request: DeleteRequest
-  ): Promise<APIResult<DeleteResponse, ErrorResponse>> => {
+  async (request: DeleteRequest): Promise<APIResult<DeleteResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
@@ -196,15 +154,6 @@ const deleteDocumentsFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };

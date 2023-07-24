@@ -13,12 +13,13 @@ import {
   CREATE_COLLECTION_DIMENSIONALITY_LTE_ZERO_ERROR,
   MISSING_COLLECTION_ID_ERROR,
 } from "../constants";
+import { handleError } from "../utility";
 
 export const createCollectionFactory =
   (managerClient: AxiosInstance) =>
   async (
     request: CreateCollectionRequest
-  ): Promise<APIResult<CreateCollectionResponse, ErrorResponse>> => {
+  ): Promise<APIResult<CreateCollectionResponse>> => {
     try {
       // sanitize request
       if (!request.name) {
@@ -44,16 +45,7 @@ export const createCollectionFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };
 
@@ -61,7 +53,7 @@ export const deleteCollectionFactory =
   (managerClient: AxiosInstance) =>
   async (
     request: DeleteCollectionRequest
-  ): Promise<APIResult<DeleteCollectionResponse, ErrorResponse>> => {
+  ): Promise<APIResult<DeleteCollectionResponse>> => {
     try {
       if (!request.collection_id) {
         throw new Error(MISSING_COLLECTION_ID_ERROR);
@@ -78,15 +70,6 @@ export const deleteCollectionFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };

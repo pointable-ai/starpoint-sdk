@@ -4,13 +4,14 @@ import {
   setAndValidateHost,
 } from "../validators";
 import { INFER_SCHEMA_PATH, QUERY_PATH, READER_URL } from "../constants";
-import { APIResult, ErrorResponse } from "../common-types";
+import { APIResult } from "../common-types";
 import {
   InferSchemaRequest,
   InferSchemaResponse,
   QueryRequest,
   QueryResponse,
 } from "./types";
+import { handleError } from "../utility";
 
 export const initReader = (readerHostURL?: string) => {
   return axios.create({
@@ -20,9 +21,7 @@ export const initReader = (readerHostURL?: string) => {
 
 export const queryDocumentsFactory =
   (readerClient: AxiosInstance) =>
-  async (
-    request: QueryRequest
-  ): Promise<APIResult<QueryResponse, ErrorResponse>> => {
+  async (request: QueryRequest): Promise<APIResult<QueryResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
@@ -36,24 +35,15 @@ export const queryDocumentsFactory =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };
 
-export const inferSchemaFactor =
+export const inferSchemaFactory =
   (readerClient: AxiosInstance) =>
   async (
     request: InferSchemaRequest
-  ): Promise<APIResult<InferSchemaResponse, ErrorResponse>> => {
+  ): Promise<APIResult<InferSchemaResponse>> => {
     try {
       // sanitize request
       sanitizeCollectionIdentifiersInRequest(request);
@@ -67,15 +57,6 @@ export const inferSchemaFactor =
         error: null,
       };
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        return {
-          data: null,
-          error: err?.response?.data,
-        };
-      }
-      return {
-        data: null,
-        error: { error_message: err.message },
-      };
+      return handleError(err);
     }
   };
