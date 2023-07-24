@@ -40,6 +40,7 @@ export const insertDocumentsFactory =
       if (!request.documents || request.documents.length === 0) {
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
+      // if !request.documents.all((document) => document.embedding?.length !== 0)
       if (
         request.documents &&
         request.documents.some(
