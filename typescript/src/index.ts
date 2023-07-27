@@ -12,12 +12,7 @@ import {
   initReader,
   queryDocumentsFactory,
 } from "./reader";
-import {
-  buildAndInsertEmbeddingsFromOpenAIFactory,
-  initOpenAI,
-} from "./open-ai";
 import { createCollectionFactory, deleteCollectionFactory } from "./manager";
-import { BuildAndInsertEmbeddingsFromOpenAIRequest } from "./open-ai/types";
 import { embedFactory, initEmbedding } from "./embedding";
 
 const initialize = (
@@ -51,18 +46,6 @@ const initialize = (
   const embeddingClient = initEmbedding(options?.embeddingHostURL);
   const embed = embedFactory(embeddingClient);
 
-  // openai
-  const openAIClient = initOpenAI(options?.openaiKey);
-  const buildAndInsertEmbeddingsFromOpenAI =
-    buildAndInsertEmbeddingsFromOpenAIFactory(openAIClient, columnInsert);
-  const buildAndInsertEmbeddings = async (
-    req: BuildAndInsertEmbeddingsFromOpenAIRequest
-  ) =>
-    buildAndInsertEmbeddingsFromOpenAI({
-      model: "text-embedding-ada-002",
-      ...req,
-    });
-
   return {
     // writer
     insertDocuments,
@@ -77,11 +60,6 @@ const initialize = (
     deleteCollection,
     // embed
     embed,
-    // openai
-    openai: {
-      buildAndInsertEmbeddingsNoDefault: buildAndInsertEmbeddingsFromOpenAI,
-      buildAndInsertEmbeddings,
-    },
   };
 };
 

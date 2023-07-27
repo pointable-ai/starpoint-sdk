@@ -1,6 +1,6 @@
 import { CreateEmbeddingRequestInput, CreateEmbeddingResponse } from "openai";
-import { ByWrapper, Metadata, Option } from "../common-types";
-import { InsertResponse } from "../writer/types";
+import { ByWrapper, Metadata, Option } from "../../typescript/src/common-types";
+import { InsertResponse } from "../../typescript/src/writer/types";
 
 export interface InitOpenAIRequest {
   openai_key?: Option<string>;
@@ -19,10 +19,10 @@ export type BuildAndInsertEmbeddingsFromOpenAIRequest = ByWrapper<{
   model: string;
   input_data: CreateEmbeddingRequestInput;
   document_metadata?: Option<Metadata[]>;
-  openai_user?: Option<string>;
+  openai_user?: string;
 }>;
 
 export interface BuildAndInsertEmbeddingsFromOpenAIResponse {
   openai_response: CreateEmbeddingResponse;
-  starpoint_response: InsertResponse;
+  starpoint_response?: Option<InsertResponse>;
 }
