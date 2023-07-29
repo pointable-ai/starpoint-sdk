@@ -1,14 +1,23 @@
 import { Configuration, OpenAIApi } from "openai";
-import { APIResult, ErrorResponse, Option } from "../common-types";
+import { db } from "starpoint";
+import {
+  APIResult,
+  ErrorResponse,
+  Option,
+} from "../../typescript/src/common-types";
 import { backfillDocumentMetadata } from "./utility";
 import {
   BuildAndInsertEmbeddingsFromOpenAIRequest,
+  BuildAndInsertEmbeddingsRequest,
   BuildAndInsertEmbeddingsFromOpenAIResponse,
 } from "./types";
 import { OPENAI_INSTANCE_INIT_ERROR } from "./constants";
-import { sanitizeCollectionIdentifiersInRequest } from "../validators";
-import { InsertResponse, TransposeAndInsertRequest } from "../writer/types";
-import { handleError } from "../utility";
+import { sanitizeCollectionIdentifiersInRequest } from "../../typescript/src/validators";
+import {
+  InsertResponse,
+  TransposeAndInsertRequest,
+} from "../../typescript/src/writer/types";
+import { handleError } from "../../typescript/src/utility";
 
 export interface InitOpenAIRequest {
   openai_key?: Option<string>;
@@ -32,13 +41,11 @@ export const buildAndInsertEmbeddingsFromOpenAIFactory =
     openAIApiClient: OpenAIApi | null,
     columnInsert: (
       req: TransposeAndInsertRequest
-    ) => Promise<APIResult<InsertResponse, ErrorResponse>>
+    ) => Promise<APIResult<InsertResponse>>
   ) =>
   async (
     request: BuildAndInsertEmbeddingsFromOpenAIRequest
-  ): Promise<
-    APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse, ErrorResponse>
-  > => {
+  ): Promise<APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse | null>> => {
     try {
       if (openAIApiClient === null) {
         throw new Error(OPENAI_INSTANCE_INIT_ERROR);
@@ -55,6 +62,7 @@ export const buildAndInsertEmbeddingsFromOpenAIFactory =
       });
 
       const embeddingData = embeddingResponse.data.data;
+
       if (embeddingData === null) {
         const response: APIResult<BuildAndInsertEmbeddingsFromOpenAIResponse> =
           {
@@ -75,7 +83,7 @@ export const buildAndInsertEmbeddingsFromOpenAIFactory =
       );
 
       const requestedDocumentMetadata =
-        document_metadata !== null
+        document_metadata !== null && document_metadata !== undefined
           ? document_metadata
           : backfillDocumentMetadata(input_data);
 
@@ -96,3 +104,31 @@ export const buildAndInsertEmbeddingsFromOpenAIFactory =
       return handleError(err);
     }
   };
+
+const initialize = (
+  openaiKey: string,
+  starpointAPI: ReturnType<typeof db.initialize>
+) => {
+  const { columnInsert } = starpointAPI;
+
+  // openai
+  const openAIClient = initOpenAI(openaiKey);
+  const buildAndInsertEmbeddingsFromOpenAI =
+    buildAndInsertEmbeddingsFromOpenAIFactory(openAIClient, columnInsert);
+  const buildAndInsertEmbeddings = async (
+    req: BuildAndInsertEmbeddingsRequest
+  ) => {
+    const { ...rest } = req;
+    buildAndInsertEmbeddingsFromOpenAI({
+      model: "text-embedding-ada-002",
+      ...rest,
+    });
+  };
+  return {
+    // openai
+    buildAndInsertEmbeddingsNoDefault: buildAndInsertEmbeddingsFromOpenAI,
+    buildAndInsertEmbeddings,
+  };
+};
+
+export const starpointOpenai = { initialize };
