@@ -4,7 +4,7 @@ import {
   APIResult,
   ErrorResponse,
   Option,
-} from "../../typescript/src/common-types";
+} from "starpoint/src/common-types";
 import { backfillDocumentMetadata } from "./utility";
 import {
   BuildAndInsertEmbeddingsFromOpenAIRequest,
@@ -12,12 +12,12 @@ import {
   BuildAndInsertEmbeddingsFromOpenAIResponse,
 } from "./types";
 import { OPENAI_INSTANCE_INIT_ERROR } from "./constants";
-import { sanitizeCollectionIdentifiersInRequest } from "../../typescript/src/validators";
+import { sanitizeCollectionIdentifiersInRequest } from "starpoint/src/validators";
 import {
   InsertResponse,
   TransposeAndInsertRequest,
 } from "../../typescript/src/writer/types";
-import { handleError } from "../../typescript/src/utility";
+import { handleError } from "starpoint/src/utility";
 
 export interface InitOpenAIRequest {
   openai_key?: Option<string>;

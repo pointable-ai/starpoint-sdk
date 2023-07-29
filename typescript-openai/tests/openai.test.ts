@@ -1,9 +1,8 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { v4 as uuid4 } from "uuid";
 import { db } from "starpoint";
 import { starpointOpenai } from "../src";
 import { OpenAIApi } from "openai";
-import { create } from "domain";
 import { BuildAndInsertEmbeddingsFromOpenAIRequest } from "../src/types";
 
 // Mock Axios
