@@ -1,5 +1,5 @@
 import { Configuration, OpenAIApi } from "openai";
-import { db } from "../../typescript/src/index";
+import { db } from "starpoint";
 import {
   APIResult,
   ErrorResponse,
