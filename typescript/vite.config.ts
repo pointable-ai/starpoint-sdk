@@ -12,5 +12,5 @@ export default defineConfig({
       fileName: "index",
     },
   },
-  plugins: [dts()],
+  plugins: [dts({ staticImport: true, rollupTypes: true })],
 });
