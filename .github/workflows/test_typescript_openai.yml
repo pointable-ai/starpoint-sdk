@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-typescript-sdk:
+  test-typescript-openai-sdk:
     name: Typescript OpenAI SDK Tests
     runs-on: ubuntu-latest
     defaults:

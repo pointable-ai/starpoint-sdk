@@ -1,4 +1,6 @@
 import { CreateEmbeddingRequestInput } from "openai";
+import { APIResult } from "starpoint";
+import axios from "axios";
 
 export const backfillDocumentMetadata = (
   inputData: CreateEmbeddingRequestInput
@@ -12,4 +14,17 @@ export const backfillDocumentMetadata = (
       };
     });
   }
+};
+
+export const handleError = (err: any): APIResult<null> => {
+  if (axios.isAxiosError(err)) {
+    return {
+      data: null,
+      error: err?.response?.data,
+    };
+  }
+  return {
+    data: null,
+    error: { error_message: err.message },
+  };
 };

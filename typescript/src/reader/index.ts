@@ -5,12 +5,12 @@ import {
 } from "../validators";
 import { INFER_SCHEMA_PATH, QUERY_PATH, READER_URL } from "../constants";
 import {
-  APIResult,
   InferSchemaRequest,
   InferSchemaResponse,
   QueryRequest,
   QueryResponse,
-} from "../index";
+} from "./types";
+import { APIResult } from "../common-types";
 import { handleError } from "../utility";
 
 export const initReader = (readerHostURL?: string) => {

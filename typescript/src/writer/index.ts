@@ -12,8 +12,8 @@ import {
   MISSING_EMBEDDING_IN_DOCUMENT_ERROR,
   WRITER_URL,
 } from "../constants";
+import { APIResult, Document } from "../common-types";
 import {
-  APIResult, Document,
   DeleteRequest,
   DeleteResponse,
   InsertRequest,
@@ -22,7 +22,7 @@ import {
   TransposeAndInsertResponse,
   UpdateRequest,
   UpdateResponse,
-} from "../index";
+} from "./types";
 import { handleError, zip } from "../utility";
 
 export const initWriter = (writerHostURL?: string) => {

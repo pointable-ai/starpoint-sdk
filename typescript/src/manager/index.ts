@@ -1,12 +1,11 @@
 import axios, { AxiosInstance } from "axios";
+import { APIResult, ErrorResponse } from "../common-types";
 import {
-  APIResult,
-  ErrorResponse,
   CreateCollectionRequest,
   CreateCollectionResponse,
   DeleteCollectionRequest,
   DeleteCollectionResponse,
-} from "../index";
+} from "./types";
 import {
   COLLECTIONS_PATH,
   CREATE_COLLECTION_MISSING_NAME_ERROR,
