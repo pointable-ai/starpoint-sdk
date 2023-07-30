@@ -1,7 +1,5 @@
 import { CreateEmbeddingRequestInput, CreateEmbeddingResponse } from "openai";
-import { ByWrapper, Metadata, Option } from "../../typescript/src/common-types";
-import { InsertResponse } from "../../typescript/src/writer/types";
-
+import { ByWrapper, Metadata, Option, InsertResponse  } from "starpoint";
 export interface InitOpenAIRequest {
   openai_key?: Option<string>;
   openai_key_filepath?: Option<string>;

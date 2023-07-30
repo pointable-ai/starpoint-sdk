@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-      "module": "ES6",
       "target": "ES5",
       "lib": ["ES2015"],
+      "types": ["node"],
       "esModuleInterop": true,
     }
   }
