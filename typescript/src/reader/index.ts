@@ -4,13 +4,13 @@ import {
   setAndValidateHost,
 } from "../validators";
 import { INFER_SCHEMA_PATH, QUERY_PATH, READER_URL } from "../constants";
-import { APIResult } from "../common-types";
 import {
+  APIResult,
   InferSchemaRequest,
   InferSchemaResponse,
   QueryRequest,
   QueryResponse,
-} from "./types";
+} from "../index";
 import { handleError } from "../utility";
 
 export const initReader = (readerHostURL?: string) => {
