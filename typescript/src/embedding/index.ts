@@ -1,8 +1,12 @@
 import axios, { AxiosInstance } from "axios";
 import { setAndValidateHost } from "../validators";
 import { EMBEDDING_URL, EMBED_PATH } from "../constants";
-import { APIResult, ErrorResponse } from "../common-types";
-import { TextEmbeddingRequest, TextEmbeddingResponse } from "./types";
+import {
+  TextEmbeddingRequest,
+  TextEmbeddingResponse,
+  APIResult,
+  ErrorResponse,
+} from "../index";
 import { validateEmbeddingModel } from "./validators";
 import { handleError } from "../utility";
 

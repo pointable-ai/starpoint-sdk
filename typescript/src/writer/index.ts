@@ -13,6 +13,7 @@ import {
   WRITER_URL,
 } from "../constants";
 import {
+  APIResult, Document,
   DeleteRequest,
   DeleteResponse,
   InsertRequest,
@@ -21,8 +22,7 @@ import {
   TransposeAndInsertResponse,
   UpdateRequest,
   UpdateResponse,
-} from "./types";
-import { APIResult, Document } from "../common-types";
+} from "../index";
 import { handleError, zip } from "../utility";
 
 export const initWriter = (writerHostURL?: string) => {
