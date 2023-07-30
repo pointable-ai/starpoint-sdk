@@ -15,7 +15,7 @@ import {
   DeleteRequest,
   InsertRequest,
   TransposeAndInsertRequest,
-} from "../src/writer/types";
+} from "../src/index";
 import { db } from "../src/index";
 
 // Mock Axios
