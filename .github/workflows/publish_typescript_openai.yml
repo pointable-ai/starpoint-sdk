@@ -7,7 +7,7 @@ on:
 jobs:
   npm-publish:
     name: Publish release to npmjs
-    if: startsWith(github.ref, 'refs/tags/typescript-openai')
+    if: startsWith(github.ref, 'refs/tags/typescript')
     runs-on: ubuntu-latest
     permissions:
       contents: read
