@@ -1,124 +1,28 @@
 import logging
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
-from uuid import UUID
 
 import openai
-import requests
-import validators
 
-from starpoint import reader, writer, _utils
+from starpoint import reader, writer, db, _utils
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Client(object):
-    """docstring for Client"""
+NO_API_KEY_VALUE_ERROR = "Please provide at least one value for either api_key or filepath where the api key lives."
+MULTI_API_KEY_VALUE_ERROR = "Please only provide either api_key or filepath with the api_key in your initialization."
+NO_API_KEY_FILE_ERROR = "The provided filepath for the API key is not a valid file."
 
-    def __init__(
-        self,
-        api_key: UUID,
-        reader_host: Optional[str] = None,
-        writer_host: Optional[str] = None,
-    ):
-        self.writer = writer.Writer(api_key=api_key, host=writer_host)
-        self.reader = reader.Reader(api_key=api_key, host=reader_host)
+# OpenAI response error
+NO_EMBEDDING_DATA_FOUND = (
+    "No embedding data found in the embedding response from OpenAI."
+)
 
-        # Consider a wrapper around openai once this class gets bloated
+
+class OpenAIClient(object):
+    def __init__(self, starpoint: db.Client):
+        self.starpoint = starpoint
         self.openai = None
-
-    def delete(
-        self,
-        documents: List[str],
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        return self.writer.delete(
-            documents=documents,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
-    def insert(
-        self,
-        documents: List[Dict[Any, Any]],
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        return self.writer.insert(
-            documents=documents,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
-    def column_insert(
-        self,
-        embeddings: List[float],
-        document_metadatas: List[Dict[Any, Any]],
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        return self.writer.column_insert(
-            embeddings=embeddings,
-            document_metadatas=document_metadatas,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
-    def query(
-        self,
-        sql: Optional[str] = None,
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-        query_embedding: Optional[List[float]] = None,
-        params: Optional[List[Any]] = None,
-    ) -> Dict[Any, Any]:
-        return self.reader.query(
-            sql=sql,
-            collection_id=collection_id,
-            collection_name=collection_name,
-            query_embedding=query_embedding,
-            params=params,
-        )
-
-    def infer_schema(
-        self,
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        return self.reader.infer_schema(
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
-    def update(
-        self,
-        documents: List[Dict[Any, Any]],
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        return self.writer.update(
-            documents=documents,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
-    def create_collection(
-        self, collection_name: str, dimensionality: int
-    ) -> Dict[Any, Any]:
-        return self.writer.create_collection(
-            collection_name=collection_name,
-            dimensionality=dimensionality,
-        )
-
-    def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
-        return self.writer.delete_collection(
-            collection_id=collection_id,
-        )
-
-    """
-    OpenAI convenience wrappers
-    """
 
     def init_openai(
         self,
@@ -142,6 +46,7 @@ class Client(object):
             else:
                 self.openai.api_key = openai_key
         except ValueError as e:
+            # Throw error inset of setting to self.openai
             self.openai = None
             raise e
 
@@ -187,7 +92,7 @@ class Client(object):
         try:
             sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
             embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
-            starpoint_response = self.column_insert(
+            starpoint_response = self.starpoint.column_insert(
                 embeddings=embeddings,
                 document_metadatas=document_metadatas,
                 collection_id=collection_id,
