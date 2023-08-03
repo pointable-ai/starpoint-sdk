@@ -20,11 +20,16 @@ NO_EMBEDDING_DATA_FOUND = (
 
 
 class OpenAIClient(object):
-    def __init__(self, starpoint: db.Client):
+    def __init__(
+        self,
+        starpoint: db.Client,
+        openai_key: Optional[str] = None,
+        openai_key_filepath: Optional[str] = None,
+    ):
         self.starpoint = starpoint
-        self.openai = None
+        self._init_openai(openai_key, openai_key_filepath)
 
-    def init_openai(
+    def _init_openai(
         self,
         openai_key: Optional[str] = None,
         openai_key_filepath: Optional[str] = None,
@@ -34,21 +39,16 @@ class OpenAIClient(object):
         # TODO: maybe do this for starpoint api_key also
 
         # If the init is unsuccessful, we deinitialize openai from this object in the except
-        try:
-            if openai_key and openai_key_filepath:
-                raise ValueError(MULTI_API_KEY_VALUE_ERROR)
-            elif openai_key is None:
-                if openai_key_filepath is None:
-                    raise ValueError(NO_API_KEY_VALUE_ERROR)
-                if not Path(openai_key_filepath).is_file():
-                    raise ValueError(NO_API_KEY_FILE_ERROR)
-                self.openai.api_key_path = openai_key_filepath
-            else:
-                self.openai.api_key = openai_key
-        except ValueError as e:
-            # Throw error inset of setting to self.openai
-            self.openai = None
-            raise e
+        if openai_key and openai_key_filepath:
+            raise ValueError(MULTI_API_KEY_VALUE_ERROR)
+        elif openai_key is None:
+            if openai_key_filepath is None:
+                raise ValueError(NO_API_KEY_VALUE_ERROR)
+            if not Path(openai_key_filepath).is_file():
+                raise ValueError(NO_API_KEY_FILE_ERROR)
+            self.openai.api_key_path = openai_key_filepath
+        else:
+            self.openai.api_key = openai_key
 
     def build_and_insert_embeddings_from_openai(
         self,
@@ -59,12 +59,6 @@ class OpenAIClient(object):
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        if self.openai is None:
-            raise RuntimeError(
-                "OpenAI instance has not been initialized. Please initialize it using "
-                "Client.init_openai()"
-            )
-
         _utils._check_collection_identifier_collision(collection_id, collection_name)
 
         embedding_response = self.openai.Embedding.create(

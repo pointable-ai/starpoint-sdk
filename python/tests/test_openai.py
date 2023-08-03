@@ -13,12 +13,8 @@ from starpoint import openai
 def test_client_init_openai_no_api_value(
     mock_writer: MagicMock, mock_reader: MagicMock
 ):
-    client = openai.OpenAIClient(MagicMock())
-
     with pytest.raises(ValueError, match=openai.NO_API_KEY_VALUE_ERROR):
-        client.init_openai()
-
-    assert client.openai is None
+        openai.OpenAIClient(MagicMock())
 
 
 @patch("starpoint.reader.Reader")
@@ -26,12 +22,8 @@ def test_client_init_openai_no_api_value(
 def test_client_init_openai_both_api_value(
     mock_writer: MagicMock, mock_reader: MagicMock
 ):
-    client = openai.OpenAIClient(MagicMock())
-
     with pytest.raises(ValueError, match=openai.MULTI_API_KEY_VALUE_ERROR):
-        client.init_openai("mock_key", "mock_path")
-
-    assert client.openai is None
+        openai.OpenAIClient(MagicMock(), "mock_key", "mock_path")
 
 
 @patch("starpoint.reader.Reader")
@@ -41,9 +33,7 @@ def test_client_init_openai_with_api_key(
 ):
     mock_api_key = "mock_key"
 
-    client = openai.OpenAIClient(MagicMock())
-
-    client.init_openai(openai_key=mock_api_key)
+    client = openai.OpenAIClient(MagicMock(), openai_key=mock_api_key)
 
     assert client.openai.api_key == mock_api_key
 
@@ -55,8 +45,7 @@ def test_client_init_openai_with_api_path(
 ):
     temp_file = NamedTemporaryFile()
 
-    client = openai.OpenAIClient(MagicMock())
-    client.init_openai(openai_key_filepath=temp_file.name)
+    client = openai.OpenAIClient(MagicMock(), openai_key_filepath=temp_file.name)
 
     assert client.openai.api_key_path == temp_file.name
 
@@ -68,31 +57,18 @@ def test_client_init_openai_with_bad_api_path(
 ):
     mock_api_key_path = "1234~/path"
 
-    client = openai.OpenAIClient(MagicMock())
     with pytest.raises(ValueError, match=openai.NO_API_KEY_FILE_ERROR):
-        client.init_openai(openai_key_filepath=mock_api_key_path)
-
-    assert client.openai is None
-
-
-@patch("starpoint.reader.Reader")
-@patch("starpoint.writer.Writer")
-def test_client_build_and_insert_embeddings_from_openai_uninitialized(
-    mock_writer: MagicMock, mock_reader: MagicMock
-):
-    client = openai.OpenAIClient(MagicMock())
-    with pytest.raises(RuntimeError):
-        client.build_and_insert_embeddings_from_openai(
-            model="mock_model", input_data="mock_input"
-        )
+        openai.OpenAIClient(MagicMock(), openai_key_filepath=mock_api_key_path)
 
 
 @patch("starpoint.openai._utils._check_collection_identifier_collision")
+@patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
 def test_client_build_and_insert_embeddings_from_openai_input_string_success(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
+    mock_init_openai: MagicMock,
     collision_mock: MagicMock,
 ):
     starpoint_mock = MagicMock()
@@ -135,11 +111,13 @@ def test_client_build_and_insert_embeddings_from_openai_input_string_success(
 
 
 @patch("starpoint.openai._utils._check_collection_identifier_collision")
+@patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
 def test_client_build_and_insert_embeddings_from_openai_input_list_success(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
+    mock_init_openai: MagicMock,
     collision_mock: MagicMock,
 ):
     starpoint_mock = MagicMock()
@@ -188,11 +166,13 @@ def test_client_build_and_insert_embeddings_from_openai_input_list_success(
 
 
 @patch("starpoint.openai._utils._check_collection_identifier_collision")
+@patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
 def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
+    mock_init_openai: MagicMock,
     collision_mock: MagicMock,
     monkeypatch: MonkeyPatch,
 ):
@@ -226,11 +206,13 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
 
 
 @patch("starpoint.openai._utils._check_collection_identifier_collision")
+@patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
 def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
+    mock_init_openai: MagicMock,
     collision_mock: MagicMock,
     monkeypatch: MonkeyPatch,
 ):
