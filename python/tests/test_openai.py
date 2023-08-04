@@ -65,7 +65,7 @@ def test_client_init_openai_with_bad_api_path(
 @patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
-def test_client_build_and_insert_embeddings_from_openai_input_string_success(
+def test_client_build_and_insert_embeddings_input_string_success(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
     mock_init_openai: MagicMock,
@@ -95,7 +95,7 @@ def test_client_build_and_insert_embeddings_from_openai_input_string_success(
         "starpoint_response": starpoint_mock.column_insert(),
     }
 
-    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
+    actual_build_and_insert_response = client.build_and_insert_embeddings(
         model=mock_model, input_data=mock_input
     )
 
@@ -114,7 +114,7 @@ def test_client_build_and_insert_embeddings_from_openai_input_string_success(
 @patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
-def test_client_build_and_insert_embeddings_from_openai_input_list_success(
+def test_client_build_and_insert_embeddings_input_list_success(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
     mock_init_openai: MagicMock,
@@ -147,7 +147,7 @@ def test_client_build_and_insert_embeddings_from_openai_input_list_success(
         "starpoint_response": starpoint_mock.column_insert(),
     }
 
-    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
+    actual_build_and_insert_response = client.build_and_insert_embeddings(
         model=mock_model, input_data=mock_input
     )
 
@@ -169,7 +169,7 @@ def test_client_build_and_insert_embeddings_from_openai_input_list_success(
 @patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
-def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
+def test_client_build_and_insert_embeddings_no_data_in_response(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
     mock_init_openai: MagicMock,
@@ -195,7 +195,7 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
         "starpoint_response": None,
     }
 
-    actual_build_and_insert_response = client.build_and_insert_embeddings_from_openai(
+    actual_build_and_insert_response = client.build_and_insert_embeddings(
         model=mock_model, input_data=mock_input
     )
 
@@ -209,7 +209,7 @@ def test_client_build_and_insert_embeddings_from_openai_no_data_in_response(
 @patch("starpoint.openai.OpenAIClient._init_openai")
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
-def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
+def test_client_build_and_insert_embeddings_exception_during_write(
     mock_writer: MagicMock,
     mock_reader: MagicMock,
     mock_init_openai: MagicMock,
@@ -245,7 +245,7 @@ def test_client_build_and_insert_embeddings_from_openai_exception_during_write(
         "starpoint_response": {"error": column_insert_error_message},
     }
 
-    build_and_insert_response = client.build_and_insert_embeddings_from_openai(
+    build_and_insert_response = client.build_and_insert_embeddings(
         model=mock_model, input_data=mock_input
     )
 

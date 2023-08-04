@@ -34,7 +34,17 @@ class OpenAIClient(object):
         openai_key: Optional[str] = None,
         openai_key_filepath: Optional[str] = None,
     ):
-        """Initializes openai functionality"""
+        """Initializes OpenAI functionality by setting up the openai client.
+
+        Args:
+            openai_key: OpenAI API key.
+            openai_key_filepath: Filepath that contains an OpenAI API key.
+
+        Raises:
+            ValueError: Both API key and filepath to API key is provided. Only one is allowed.
+            ValueError: No API key or filepath provided.
+            ValueError: API key filepath provided is not a file.
+        """
         self.openai = openai
         # TODO: maybe do this for starpoint api_key also
 
@@ -50,7 +60,7 @@ class OpenAIClient(object):
         else:
             self.openai.api_key = openai_key
 
-    def build_and_insert_embeddings_from_openai(
+    def build_and_insert_embeddings(
         self,
         model: str,
         input_data: Union[str, Iterable[Any]],
@@ -59,6 +69,24 @@ class OpenAIClient(object):
         collection_name: Optional[str] = None,
         openai_user: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Builds and inserts embeddings into starpoint by requesting embedding creation from
+        an initialized openai client. Regardless whether the operation into starpoint is
+        successful, the response from the openai client is returned.
+
+        Args:
+            model: Embedding model to be used for creating the embeddings. For an up to date list of what
+                models are available see [OpenAI's guide on embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings)
+            input_data: Data to be embedded.
+            document_metadatas: Optional metadatas to tie to the embeddings generated using the input data.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+            openai_user: Optional user string used by the embedding endpoint from OpenAI.
+
+        Returns:
+            dict: Includes both responses from starpoint and openai.
+        """
         _utils._check_collection_identifier_collision(collection_id, collection_name)
 
         embedding_response = self.openai.Embedding.create(
@@ -104,13 +132,13 @@ class OpenAIClient(object):
             "starpoint_response": starpoint_response,
         }
 
-    def build_and_insert_embeddings(
+    def default_build_and_insert_embeddings(
         self,
         input_data: Union[str, Iterable[Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        return self.build_and_insert_embeddings_from_openai(
+        return self.build_and_insert_embeddings(
             model="text-embedding-ada-002",
             input_data=input_data,
             collection_id=collection_id,
