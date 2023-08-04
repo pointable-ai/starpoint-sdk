@@ -13,7 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Client(object):
-    """docstring for Client"""
+    """Client that combines Reader and Writer. It is recommended that one use this client rather than
+    Reader and Writer independently."""
 
     def __init__(
         self,
@@ -33,6 +34,22 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Remove documents in an existing collection. `delete()` method from [`Writer`](#writer-objects).
+
+        Args:
+            documents: The documents to remove from the collection.
+            collection_id: The collection's id to remove the documents from.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to remove the documents from.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: delete response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+        """
         return self.writer.delete(
             documents=documents,
             collection_id=collection_id,
@@ -45,6 +62,23 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection. `insert()` method from [`Writer`](#writer-objects).
+
+        Args:
+            documents: The documents to insert into the collection.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.insert(
             documents=documents,
             collection_id=collection_id,
@@ -58,6 +92,28 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection by embedding and document metadata arrays.
+        The arrays are zipped together and inserted as a document in the order of the two arrays.
+        `column_insert()` method from [`Writer`](#writer-objects).
+
+        Args:
+            embeddings: A list of embeddings.
+                Order of the embeddings should match the document_metadatas.
+            document_metadatas: A list of metadata to be associated with embeddings.
+                Order of these metadatas should match the embeddings.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.column_insert(
             embeddings=embeddings,
             document_metadatas=document_metadatas,
@@ -73,6 +129,26 @@ class Client(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
     ) -> Dict[Any, Any]:
+        """Queries a collection. This could be by sql or query embeddings.
+        `query()` method from [`Reader`](#reader-objects).
+
+        Args:
+            sql: Raw SQL to run against the collection.
+            collection_id: The collection's id where the query will happen.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the query will happen.
+                This or the `collection_id` needs to be provided.
+            query_embedding: An embedding to query against the collection using similarity search.
+            params: values for parameterized sql
+
+        Returns:
+            dict: query response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.reader.query(
             sql=sql,
             collection_id=collection_id,
@@ -86,6 +162,24 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Infers the schema of a particular collection.
+        Gives the results back by column name and the inferred type for that column.
+        `infer_schema()` method from [`Reader`](#reader-objects).
+
+        Args:
+            collection_id: The collection's id where the query will happen.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the query will happen.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: infer schema response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.reader.infer_schema(
             collection_id=collection_id,
             collection_name=collection_name,
@@ -97,6 +191,24 @@ class Client(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Update documents in an existing collection. `update()` method in
+        [`Writer`](#writer-objects).
+
+        Args:
+            documents: The documents to update in the collection.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: update response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.update(
             documents=documents,
             collection_id=collection_id,
@@ -106,12 +218,28 @@ class Client(object):
     def create_collection(
         self, collection_name: str, dimensionality: int
     ) -> Dict[Any, Any]:
+        """Creates a collection by name and dimensionality. Dimensionality
+        should be greater than 0. `create_collection()` method from [`Writer`](#writer-objects).
+
+        Args:
+            collection_name: The name of the collection that will be created.
+            dimensionality: The number of dimensions the collection will have.
+                Must be an int larger than 0.
+
+        Returns:
+            dict: create collections response json
+
+        Raises:
+            ValueError: If dimensionality is 0 or less.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         return self.writer.create_collection(
             collection_name=collection_name,
             dimensionality=dimensionality,
         )
 
     def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
+        """Deletes a collection. `delete_collection()` method from [`Writer`](#writer-objects)."""
         return self.writer.delete_collection(
             collection_id=collection_id,
         )

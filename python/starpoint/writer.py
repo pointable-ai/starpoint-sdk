@@ -29,7 +29,8 @@ SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid 
 
 
 class Writer(object):
-    """docstring for Writer"""
+    """Client for the Writer endpoints. If you do not need to separate reading or
+    writing for, consider using the [`Client` object](#client-objects)."""
 
     def __init__(self, api_key: UUID, host: Optional[str] = None):
         if host is None:
@@ -44,6 +45,22 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Remove documents in an existing collection.
+
+        Args:
+            documents: The documents to remove from the collection.
+            collection_id: The collection's id to remove the documents from.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to remove the documents from.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: delete response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+        """
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -89,6 +106,24 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection.
+
+        Args:
+            documents: The documents to insert into the collection.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
+
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -139,6 +174,27 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Insert documents into an existing collection by embedding and document metadata arrays.
+        The arrays are zipped together and inserted as a document in the order of the two arrays.
+
+        Args:
+            embeddings: A list of embeddings.
+                Order of the embeddings should match the document_metadatas.
+            document_metadatas: A list of metadata to be associated with embeddings.
+                Order of these metadatas should match the embeddings.
+            collection_id: The collection's id to insert the documents to.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name to insert the documents to.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: insert response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         if len(embeddings) != len(document_metadatas):
             LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
@@ -162,6 +218,23 @@ class Writer(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Update documents in an existing collection.
+
+        Args:
+            documents: The documents to update in the collection.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: update response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         _check_collection_identifier_collision(collection_id, collection_name)
         # TODO: Be safe and make sure the item passed through that doesn't hold a value is a None
 
@@ -208,11 +281,20 @@ class Writer(object):
     def create_collection(
         self, collection_name: str, dimensionality: int
     ) -> Dict[Any, Any]:
-        """
-        dict(
-            name="collection_name_example",
-            dimensionality=1024,
-        )
+        """Creates a collection by name and dimensionality. Dimensionality
+        should be greater than 0.
+
+        Args:
+            collection_name: The name of the collection that will be created.
+            dimensionality: The number of dimensions the collection will have.
+                Must be an int larger than 0.
+
+        Returns:
+            dict: create collections response json
+
+        Raises:
+            ValueError: If dimensionality is 0 or less.
+            requests.exceptions.SSLError: Failure likely due to network issues.
         """
 
         if dimensionality <= 0:
@@ -244,12 +326,17 @@ class Writer(object):
         return response.json()
 
     def delete_collection(self, collection_id: str) -> Dict[Any, Any]:
-        """
-        dict(
-            collection_id="collection_id_example",
-        )
-        """
+        """Deletes a collection.
 
+        Args:
+            collection_id: The id of the collection that will be deleted.
+
+        Returns:
+            dict: deleted collection response json
+
+        Raises:
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
         request_data = dict(
             collection_id=collection_id,
         )
