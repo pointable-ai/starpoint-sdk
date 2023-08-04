@@ -1,6 +1,6 @@
 import fs from "fs";
 import { ByWrapper } from "starpoint";
-import { InitOpenAIRequest } from "..";
+import { InitOpenAIRequest } from "./types";
 import {
   MISSING_COLLECTION_IDENTIFIER_ERROR,
   MISSING_OPENAI_KEY_IDENTIFIER_ERROR,

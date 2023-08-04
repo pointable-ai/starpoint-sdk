@@ -15,16 +15,32 @@ const createEmbeddingSpy = jest.spyOn(OpenAIApi.prototype, "createEmbedding");
 
 // Mock starpoint initialized objects
 const starpointDbSpy = jest.spyOn(db, "initialize");
-starpointDbSpy.mockReturnValue({
-  inferSchema: jest.fn(),
-  columnInsert: jest.fn(),
-  insertDocuments: jest.fn(),
-  deleteDocuments: jest.fn(),
-  updateDocuments: jest.fn(),
-  createCollection: jest.fn(),
-  deleteCollection: jest.fn(),
-  embed: jest.fn(),
-  queryDocuments: jest.fn(),
+jest.mock("starpoint", () => {
+  return {
+    db: {
+      initialize: (
+        apiKey: string,
+        options?: {
+          writerHostURL?: string;
+          readerHostURL?: string;
+          embeddingHostURL?: string;
+          openaiKey?: string;
+        }
+      ) => {
+        return {
+          inferSchema: jest.fn(),
+          columnInsert: jest.fn(),
+          insertDocuments: jest.fn(),
+          deleteDocuments: jest.fn(),
+          updateDocuments: jest.fn(),
+          createCollection: jest.fn(),
+          deleteCollection: jest.fn(),
+          embed: jest.fn(),
+          queryDocuments: jest.fn(),
+        };
+      },
+    }
+  };
 });
 const starpointOpenAiClientSpy = jest.spyOn(starpointOpenai, "initialize");
 
@@ -38,7 +54,6 @@ afterEach(() => {
   mockedAxios.patch.mockClear();
   mockedAxios.get.mockClear();
   mockedAxios.post.mockClear();
-  starpointDbSpy.mockClear();
   starpointOpenAiClientSpy.mockClear();
   createEmbeddingSpy.mockReset();
 });
@@ -63,8 +78,7 @@ describe("buildAndInsertEmbeddings", () => {
   it("should return an openai response, but not a starpoint response", async () => {
     const MOCK_COLLECTION_ID = uuid4();
     const MOCK_API_KEY = uuid4();
-    const mockInitializeClient = starpointDbSpy.getMockImplementation();
-    const dbClient = mockInitializeClient(MOCK_API_KEY);
+    const dbClient = db.initialize(MOCK_API_KEY)
     const MOCK_OPENAI_KEY = uuid4();
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
@@ -86,8 +100,7 @@ describe("buildAndInsertEmbeddings", () => {
   it("should return both an openai response and a starpoint response", async () => {
     const MOCK_COLLECTION_ID = uuid4();
     const MOCK_API_KEY = uuid4();
-    const mockInitializeClient = starpointDbSpy.getMockImplementation();
-    const dbClient = mockInitializeClient(MOCK_API_KEY);
+    const dbClient = db.initialize(MOCK_API_KEY)
     const MOCK_OPENAI_KEY = uuid4();
     const mockRequest = {
       collection_id: MOCK_COLLECTION_ID,
@@ -110,8 +123,8 @@ describe("buildAndInsertEmbeddings", () => {
       },
       status: 200,
       statusText: "ok",
-      headers: null,
-      config: null,
+      headers: {},
+      config: {},
     };
     const mockColumnInsertResponse = {
       data: {
@@ -139,8 +152,7 @@ describe("buildAndInsertEmbeddingsNoDefault", () => {
   it("should return only an openai response and not a starpoint response", async () => {
     const MOCK_COLLECTION_ID = uuid4();
     const MOCK_API_KEY = uuid4();
-    const mockInitializeClient = starpointDbSpy.getMockImplementation();
-    const dbClient = mockInitializeClient(MOCK_API_KEY);
+    const dbClient = db.initialize(MOCK_API_KEY)
     const MOCK_OPENAI_KEY = uuid4();
     const mockRequest: BuildAndInsertEmbeddingsFromOpenAIRequest = {
       collection_id: MOCK_COLLECTION_ID,

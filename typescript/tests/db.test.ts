@@ -394,7 +394,7 @@ describe("createCollection", () => {
     };
 
     mockedAxios.post.mockResolvedValue(mockResponse);
-    await dbClient.createCollection(mockRequest);
+    await dbClient.createCollection(mockRequest as any);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("should return an error if dimensionality not specified", async () => {
@@ -406,7 +406,7 @@ describe("createCollection", () => {
       dimensionality: null,
     };
 
-    await dbClient.createCollection(mockRequest);
+    await dbClient.createCollection(mockRequest as any);
     expect(mockedAxios.post).not.toHaveBeenCalled();
   });
   it("should return an error if dimensionality less than or equal to zero", async () => {
