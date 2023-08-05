@@ -252,3 +252,28 @@ def test_client_build_and_insert_embeddings_exception_during_write(
     assert build_and_insert_response == expected_build_and_insert_response
     collision_mock.assert_called_once()
     logger_mock.error.assert_called_once()
+
+
+@patch("starpoint.openai.OpenAIClient.build_and_insert_embeddings")
+@patch("starpoint.openai._utils._check_collection_identifier_collision")
+@patch("starpoint.openai.OpenAIClient._init_openai")
+@patch("starpoint.reader.Reader")
+@patch("starpoint.writer.Writer")
+def test_default_build_and_insert_embeddings(
+    mock_writer: MagicMock,
+    mock_reader: MagicMock,
+    mock_init_openai: MagicMock,
+    collision_mock: MagicMock,
+    build_and_insert_embeddings_mock: MagicMock,
+):
+    client = openai.OpenAIClient(MagicMock())
+    mock_input = "mock_input"
+
+    client.default_build_and_insert_embeddings(input_data=mock_input)
+
+    build_and_insert_embeddings_mock.assert_called_once_with(
+        model=openai.DEFAULT_OPENAI_MODEL,
+        input_data=mock_input,
+        collection_id=None,
+        collection_name=None,
+    )

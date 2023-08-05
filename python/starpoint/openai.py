@@ -18,6 +18,8 @@ NO_EMBEDDING_DATA_FOUND = (
     "No embedding data found in the embedding response from OpenAI."
 )
 
+DEFAULT_OPENAI_MODEL = "text-embedding-ada-002"
+
 
 class OpenAIClient(object):
     def __init__(
@@ -139,7 +141,7 @@ class OpenAIClient(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         return self.build_and_insert_embeddings(
-            model="text-embedding-ada-002",
+            model=DEFAULT_OPENAI_MODEL,
             input_data=input_data,
             collection_id=collection_id,
             collection_name=collection_name,
