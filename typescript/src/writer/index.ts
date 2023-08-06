@@ -27,7 +27,7 @@ import {
 import { handleError, zip } from "../utility";
 
 export const initWriter = (client: typeof ky, writerHostURL?: string) => {
-  return client.create({
+  return client.extend({
     prefixUrl: writerHostURL ? setAndValidateHost(writerHostURL) : WRITER_URL,
   });
 };

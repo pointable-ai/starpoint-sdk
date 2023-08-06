@@ -14,7 +14,7 @@ import { APIResult } from "../common-types";
 import { handleError } from "../utility";
 
 export const initReader = (client: typeof ky, readerHostURL?: string) => {
-  return client.create({
+  return client.extend({
     prefixUrl: readerHostURL ? setAndValidateHost(readerHostURL) : READER_URL,
   });
 };

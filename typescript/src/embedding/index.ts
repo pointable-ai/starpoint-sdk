@@ -7,7 +7,7 @@ import { validateEmbeddingModel } from "./validators";
 import { handleError } from "../utility";
 
 export const initEmbedding = (client: typeof ky, embeddingHostURL?: string) => {
-  return client.create({
+  return client.extend({
     prefixUrl: embeddingHostURL
       ? setAndValidateHost(embeddingHostURL)
       : EMBEDDING_URL,
