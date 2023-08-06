@@ -1,8 +1,8 @@
-export const COLLECTIONS_PATH = "/api/v1/collections";
-export const DOCUMENTS_PATH = "/api/v1/documents";
-export const QUERY_PATH = "/api/v1/query";
-export const INFER_SCHEMA_PATH = "/api/v1/infer_schema";
-export const EMBED_PATH = "/api/v1/embed";
+export const COLLECTIONS_PATH = "api/v1/collections";
+export const DOCUMENTS_PATH = "api/v1/documents";
+export const QUERY_PATH = "api/v1/query";
+export const INFER_SCHEMA_PATH = "api/v1/infer_schema";
+export const EMBED_PATH = "api/v1/embed";
 
 export const WRITER_URL = "https://writer.starpoint.ai";
 export const READER_URL = "https://reader.starpoint.ai";
