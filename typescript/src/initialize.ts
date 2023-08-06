@@ -40,7 +40,7 @@ const initialize = (
 
   // reader
   const readerClient = initReader(httpClient, options?.readerHostURL);
-  const queryDocuments = queryDocumentsFactory(readerClient);
+  const query = queryDocumentsFactory(readerClient);
   const inferSchema = inferSchemaFactory(readerClient);
 
   // management
@@ -58,7 +58,7 @@ const initialize = (
     updateDocuments,
     deleteDocuments,
     // reader
-    queryDocuments,
+    query,
     inferSchema,
     // management
     createCollection,
