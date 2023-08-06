@@ -50,7 +50,6 @@ class OpenAIClient(object):
         self.openai = openai
         # TODO: maybe do this for starpoint api_key also
 
-        # If the init is unsuccessful, we deinitialize openai from this object in the except
         if openai_key and openai_key_filepath:
             raise ValueError(MULTI_API_KEY_VALUE_ERROR)
         elif openai_key is None:
@@ -72,7 +71,7 @@ class OpenAIClient(object):
         openai_user: Optional[str] = None,
     ) -> Dict[Any, Any]:
         """Builds and inserts embeddings into starpoint by requesting embedding creation from
-        an initialized openai client. Regardless whether the operation into starpoint is
+        an initialized openai client. Regardless whether the operation insert data into starpoint is
         successful, the response from the openai client is returned.
 
         Args:
@@ -87,7 +86,7 @@ class OpenAIClient(object):
             openai_user: Optional user string used by the embedding endpoint from OpenAI.
 
         Returns:
-            dict: Includes both responses from starpoint and openai.
+            dict: Responses from starpoint and openai.
         """
         _utils._check_collection_identifier_collision(collection_id, collection_name)
 
@@ -140,6 +139,25 @@ class OpenAIClient(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
+        """Builds and inserts embeddings into starpoint by requesting embedding creation from
+        an initialized openai client using the model `text-embedding-ada-002`. If you wish to use other models use the
+        `build_and_insert_embeddings` method instead. Regardless whether the operation into starpoint is successful,
+        the response from the openai client is returned.
+
+        Args:
+            model: Embedding model to be used for creating the embeddings. For an up to date list of what
+                models are available see [OpenAI's guide on embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings)
+            input_data: Data to be embedded.
+            document_metadatas: Optional metadatas to tie to the embeddings generated using the input data.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+            openai_user: Optional user string used by the embedding endpoint from OpenAI.
+
+        Returns:
+            dict: Responses from starpoint and openai.
+        """
         return self.build_and_insert_embeddings(
             model=DEFAULT_OPENAI_MODEL,
             input_data=input_data,
