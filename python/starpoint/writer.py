@@ -7,7 +7,7 @@ import requests
 from starpoint._utils import (
     _build_header,
     _check_collection_identifier_collision,
-    _set_and_validate_host,
+    _validate_host,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class Writer(object):
         if host is None:
             host = WRITER_URL
 
-        self.host = _set_and_validate_host(host)
+        self.host = _validate_host(host)
         self.api_key = api_key
 
     def delete(

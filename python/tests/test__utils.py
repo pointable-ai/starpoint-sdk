@@ -64,20 +64,18 @@ def test__check_host_health_unhealthy_host_assert(
     logger_mock.warning.assert_called_once()
 
 
-def test__set_and_validate_host_no_host():
+def test__validate_host_no_host():
     with pytest.raises(ValueError, match=_utils.NO_HOST_ERROR):
-        _utils._set_and_validate_host(host="")
+        _utils._validate_host(host="")
 
 
 @pytest.mark.parametrize(
     "test_host", ("asdf", "pdf://www.example.com", "www.example.com")
 )
 @patch("starpoint._utils._check_host_health")
-def test__set_and_validate_host_invalid_url(
-    host_health_mock: MagicMock, test_host: str
-):
+def test__validate_host_invalid_url(host_health_mock: MagicMock, test_host: str):
     with pytest.raises(ValueError, match=r".*not a valid url format"):
-        _utils._set_and_validate_host(host=test_host)
+        _utils._validate_host(host=test_host)
     host_health_mock.assert_not_called()
 
 
@@ -85,12 +83,12 @@ def test__set_and_validate_host_invalid_url(
     "test_host", ("http://www.example.com/", "http://www.example.com//")
 )
 @patch("starpoint._utils._check_host_health")
-def test__set_and_validate_host_dangling_backslash_trimmed(
+def test__validate_host_dangling_backslash_trimmed(
     host_health_mock: MagicMock, test_host: str
 ):
     expected_hostname = "http://www.example.com"
 
-    actual_hostname = _utils._set_and_validate_host(host=test_host)
+    actual_hostname = _utils._validate_host(host=test_host)
 
     assert actual_hostname == expected_hostname
     host_health_mock.assert_called_once_with(expected_hostname)
@@ -100,12 +98,10 @@ def test__set_and_validate_host_dangling_backslash_trimmed(
     "test_host", ("http://www.example.com", "https://www.example.com")
 )
 @patch("starpoint._utils._check_host_health")
-def test__set_and_validate_host_simple_valid_url(
-    host_health_mock: MagicMock, test_host: str
-):
+def test__validate_host_simple_valid_url(host_health_mock: MagicMock, test_host: str):
     expected_hostname = test_host
 
-    actual_hostname = _utils._set_and_validate_host(host=test_host)
+    actual_hostname = _utils._validate_host(host=test_host)
 
     assert actual_hostname == expected_hostname
     host_health_mock.assert_called_once_with(expected_hostname)

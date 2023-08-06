@@ -25,7 +25,7 @@ def test_reader_default_init(mock_reader: reader.Reader, api_uuid: UUID):
     assert mock_reader.api_key == api_uuid
 
 
-@patch("starpoint.reader._set_and_validate_host")
+@patch("starpoint.reader._validate_host")
 def test_reader_init_non_default_host(mock_host_validator: MagicMock, api_uuid: UUID):
     test_host = "http://www.example.com"
     test_reader = reader.Reader(api_key=api_uuid, host=test_host)

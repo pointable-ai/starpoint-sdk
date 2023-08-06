@@ -42,7 +42,18 @@ def _check_host_health(hostname: str):
         )
 
 
-def _set_and_validate_host(host: str):
+def _validate_host(host: str):
+    """Check the hostname and health of the host before returning a properly formatted hostname.
+    Args:
+        host: hostname of the service.
+
+    Returns:
+        str: hostname, trimmed of extra backslashes if necessary.
+
+    Raises:
+        ValueError: Empty string is provided for host.
+        ValueError: Invalid url format.
+    """
     if not host:
         raise ValueError(NO_HOST_ERROR)
     elif validators.url(host) is not True:  # type: ignore
