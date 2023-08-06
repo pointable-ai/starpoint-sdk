@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import ky from "ky-universal";
 import { APIResult, ErrorResponse } from "../common-types";
 import {
   CreateCollectionRequest,
@@ -16,7 +16,7 @@ import {
 import { handleError } from "../utility";
 
 export const createCollectionFactory =
-  (managerClient: AxiosInstance) =>
+  (managerClient: typeof ky) =>
   async (
     request: CreateCollectionRequest
   ): Promise<APIResult<CreateCollectionResponse>> => {
@@ -36,21 +36,20 @@ export const createCollectionFactory =
       }
 
       // make api call
-      const response = await managerClient.post<CreateCollectionResponse>(
-        COLLECTIONS_PATH,
-        request
-      );
+      const response = await managerClient
+        .post(COLLECTIONS_PATH, { json: request })
+        .json<CreateCollectionResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {
-      return handleError(err);
+      return await handleError(err);
     }
   };
 
 export const deleteCollectionFactory =
-  (managerClient: AxiosInstance) =>
+  (managerClient: typeof ky) =>
   async (
     request: DeleteCollectionRequest
   ): Promise<APIResult<DeleteCollectionResponse>> => {
@@ -59,14 +58,13 @@ export const deleteCollectionFactory =
         throw new Error(MISSING_COLLECTION_ID_ERROR);
       }
       // make api call
-      const response = await managerClient.delete<DeleteCollectionResponse>(
-        COLLECTIONS_PATH,
-        {
-          data: request,
-        }
-      );
+      const response = await managerClient
+        .delete(COLLECTIONS_PATH, {
+          json: request,
+        })
+        .json<DeleteCollectionResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {

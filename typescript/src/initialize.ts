@@ -1,4 +1,5 @@
 import axios from "axios";
+import ky from "ky-universal";
 import { API_KEY_HEADER_NAME } from "./constants";
 import {
   columnInsertFactory,
@@ -24,17 +25,21 @@ const initialize = (
     openaiKey?: string;
   }
 ) => {
-  axios.defaults.headers.common[API_KEY_HEADER_NAME] = apiKey;
+  const httpClient = ky.create({
+    headers: {
+      [API_KEY_HEADER_NAME]: apiKey,
+    },
+  });
 
   // writer
-  const writerClient = initWriter(options?.writerHostURL);
+  const writerClient = initWriter(httpClient, options?.writerHostURL);
   const insertDocuments = insertDocumentsFactory(writerClient);
   const columnInsert = columnInsertFactory(insertDocuments);
   const updateDocuments = updateDocumentsFactory(writerClient);
   const deleteDocuments = deleteDocumentsFactory(writerClient);
 
   // reader
-  const readerClient = initReader(options?.readerHostURL);
+  const readerClient = initReader(httpClient, options?.readerHostURL);
   const queryDocuments = queryDocumentsFactory(readerClient);
   const inferSchema = inferSchemaFactory(readerClient);
 
@@ -43,7 +48,7 @@ const initialize = (
   const deleteCollection = deleteCollectionFactory(writerClient);
 
   // embed
-  const embeddingClient = initEmbedding(options?.embeddingHostURL);
+  const embeddingClient = initEmbedding(httpClient, options?.embeddingHostURL);
   const embed = embedFactory(embeddingClient);
 
   return {
