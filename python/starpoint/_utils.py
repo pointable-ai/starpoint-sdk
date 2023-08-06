@@ -24,6 +24,15 @@ NO_HOST_ERROR = "No host value provided. A host must be provided."
 
 
 def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = None):
+    """Builds the header for starpoint requests.
+    Args:
+        api_key: API key for starpoint.
+        additional_headers: additional headers that need to be part of the header;
+            for example `Content-Type`.
+
+    Returns:
+        dict: Header for the request.
+    """
     header = {API_HEADER_KEY: str(api_key)}
     if additional_headers is not None:
         header.update(additional_headers)
@@ -31,6 +40,14 @@ def _build_header(api_key: UUID, additional_headers: Optional[Dict[str, str]] = 
 
 
 def _check_host_health(hostname: str):
+    """Check that the host is healthy. This is non-blocking as long as the host responds with a 200.
+
+    Args:
+        hostname: hostname of the service.
+
+    Raises:
+        AssertionError: host does not return a 200 when a GET request is sent.
+    """
     resp = requests.get(hostname)
     assert (
         resp.ok
@@ -70,6 +87,17 @@ def _validate_host(host: str):
 def _check_collection_identifier_collision(
     collection_id: Optional[str] = None, collection_name: Optional[str] = None
 ):
+    """Check whether both or neither collection_id and collection_name is provided.
+    Args:
+        collection_id: The collection's id where the query will happen.
+            This or the `collection_name` needs to be provided.
+        collection_name: The collection's name where the query will happen.
+            This or the `collection_id` needs to be provided.
+
+    Raises:
+        ValueError: If neither collection id and collection name are provided.
+        ValueError: If both collection id and collection name are provided.
+    """
     if collection_id is None and collection_name is None:
         raise ValueError(NO_COLLECTION_VALUE_ERROR)
     elif collection_id and collection_name:
