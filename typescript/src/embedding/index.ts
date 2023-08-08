@@ -1,26 +1,21 @@
-import axios, { AxiosInstance } from "axios";
+import ky from "ky-universal";
 import { setAndValidateHost } from "../validators";
 import { EMBEDDING_URL, EMBED_PATH } from "../constants";
-import {  APIResult,
-  ErrorResponse,
-} from "../common-types"
-import {
-  TextEmbeddingRequest,
-  TextEmbeddingResponse,
-} from "./types";
+import { APIResult } from "../common-types";
+import { TextEmbeddingRequest, TextEmbeddingResponse } from "./types";
 import { validateEmbeddingModel } from "./validators";
 import { handleError } from "../utility";
 
-export const initEmbedding = (embeddingHostURL?: string) => {
-  return axios.create({
-    baseURL: embeddingHostURL
+export const initEmbedding = (client: typeof ky, embeddingHostURL?: string) => {
+  return client.extend({
+    prefixUrl: embeddingHostURL
       ? setAndValidateHost(embeddingHostURL)
       : EMBEDDING_URL,
   });
 };
 
 export const embedFactory =
-  (embeddingClient: AxiosInstance) =>
+  (embeddingClient: typeof ky) =>
   async (
     req: TextEmbeddingRequest
   ): Promise<APIResult<TextEmbeddingResponse>> => {
@@ -28,15 +23,14 @@ export const embedFactory =
       // sanitize request
       validateEmbeddingModel(req.model);
       // make api call
-      const response = await embeddingClient.post<TextEmbeddingResponse>(
-        EMBED_PATH,
-        req
-      );
+      const response = await embeddingClient
+        .post(EMBED_PATH, { json: req })
+        .json<TextEmbeddingResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {
-      return handleError(err);
+      return await handleError(err);
     }
   };

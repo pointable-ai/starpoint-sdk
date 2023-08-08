@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import ky from "ky-universal";
 import {
   sanitizeCollectionIdentifiersInRequest,
   setAndValidateHost,
@@ -25,14 +26,14 @@ import {
 } from "./types";
 import { handleError, zip } from "../utility";
 
-export const initWriter = (writerHostURL?: string) => {
-  return axios.create({
-    baseURL: writerHostURL ? setAndValidateHost(writerHostURL) : WRITER_URL,
+export const initWriter = (client: typeof ky, writerHostURL?: string) => {
+  return client.extend({
+    prefixUrl: writerHostURL ? setAndValidateHost(writerHostURL) : WRITER_URL,
   });
 };
 
 export const insertDocumentsFactory =
-  (writerClient: AxiosInstance) =>
+  (writerClient: typeof ky) =>
   async (request: InsertRequest): Promise<APIResult<InsertResponse>> => {
     try {
       // sanitize request
@@ -42,16 +43,15 @@ export const insertDocumentsFactory =
       }
 
       // make api call
-      const response = await writerClient.post<InsertResponse>(
-        DOCUMENTS_PATH,
-        request
-      );
+      const response = await writerClient
+        .post(DOCUMENTS_PATH, { json: request })
+        .json<InsertResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {
-      return handleError(err);
+      return await handleError(err);
     }
   };
 
@@ -90,7 +90,7 @@ export const columnInsertFactory =
   };
 
 export const updateDocumentsFactory =
-  (writerClient: AxiosInstance) =>
+  (writerClient: typeof ky) =>
   async (request: UpdateRequest): Promise<APIResult<UpdateResponse>> => {
     try {
       // sanitize request
@@ -99,12 +99,11 @@ export const updateDocumentsFactory =
         throw new Error(MISSING_DOCUMENT_IN_REQUEST_ERROR);
       }
       // make api call
-      const response = await writerClient.patch<UpdateResponse>(
-        DOCUMENTS_PATH,
-        request
-      );
+      const response = await writerClient
+        .patch(DOCUMENTS_PATH, { json: request })
+        .json<UpdateResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {
@@ -113,7 +112,7 @@ export const updateDocumentsFactory =
   };
 
 export const deleteDocumentsFactory =
-  (writerClient: AxiosInstance) =>
+  (writerClient: typeof ky) =>
   async (request: DeleteRequest): Promise<APIResult<DeleteResponse>> => {
     try {
       // sanitize request
@@ -122,14 +121,13 @@ export const deleteDocumentsFactory =
         throw new Error(MISSING_DOCUMENT_IDS_IN_DELETE_REQUEST_ERROR);
       }
       // make api call
-      const response = await writerClient.delete<DeleteResponse>(
-        DOCUMENTS_PATH,
-        {
-          data: request,
-        }
-      );
+      const response = await writerClient
+        .delete(DOCUMENTS_PATH, {
+          json: request,
+        })
+        .json<DeleteResponse>();
       return {
-        data: response.data,
+        data: response,
         error: null,
       };
     } catch (err) {

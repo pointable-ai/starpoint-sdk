@@ -1,5 +1,4 @@
-import axios from "axios";
-import { APIResult, ErrorResponse } from "./common-types";
+import { APIResult } from "./common-types";
 
 export function zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   const length = Math.min(listA.length, listB.length);
@@ -9,11 +8,11 @@ export function zip<T, U>(listA: T[], listB: U[]): [T, U][] {
   return result;
 }
 
-export const handleError = (err: any): APIResult<null> => {
-  if (axios.isAxiosError(err)) {
+export const handleError = async (err: any): Promise<APIResult<null>> => {
+  if (err.name === "HTTPError") {
     return {
       data: null,
-      error: err?.response?.data,
+      error: await err.response.json(),
     };
   }
   return {
