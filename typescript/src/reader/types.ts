@@ -15,7 +15,7 @@ export interface QueryResponse {
   sql?: Option<string>;
   results: {
     __id: string;
-    __distance: number;
+    __distance: Option<number>;
     [key: string]: string | number | undefined | null;
   }[];
 }
