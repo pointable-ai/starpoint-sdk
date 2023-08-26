@@ -19,18 +19,24 @@ class PandasClient(object):
     ):
         self.starpoint = starpoint
 
-    def insert_dataframe(self, dataframe: pd.DataFrame):
+    def insert_dataframe(self, dataframe: pd.DataFrame, collection_id: Optional[str]=None, collection_name: Optional[str]=None) -> Dict[Any, Any]:
         if len(dataframe.columns) > 2:
             LOGGER.warning(TOO_MANY_COLUMN_WARNING)
         elif len(dataframe.columns) < 2:
-            raise ValueError("")
+            raise ValueError(TOO_FEW_COLUMN_ERROR)
 
         try:
-            embedding_column_index = dataframe.columns.get_loc("embedding")
+            embedding_column = dataframe["embedding"]
         except KeyError as e:
             raise KeyError(MISSING_COLUMN) from e
+        # TODO: check values using df to make sure values aren't totally bogus
+        embedding_column_values = embedding_column.values.tolist()
 
         try:
-            metadata_column_index = dataframe.columns.get_loc("metadata")
+            metadata_column = dataframe["metadata"]
         except KeyError as e:
             raise KeyError(MISSING_COLUMN) from e
+        # TODO: check values using df to make sure values aren't totally bogus
+        metadata_column_values = metadata_column.values.tolist()
+
+        self.starpoint.column_insert(embeddings=embedding_column_values, document_metadatas=metadata_column_values, collection_id=collection_id, collection_name=collection_name)
