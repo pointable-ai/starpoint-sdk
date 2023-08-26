@@ -87,7 +87,7 @@ class Client(object):
 
     def column_insert(
         self,
-        embeddings: List[float],
+        embeddings: List[List[float]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
