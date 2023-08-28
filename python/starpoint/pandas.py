@@ -12,6 +12,7 @@ column for both embeddings and metadata. For examples of what this should look l
 https://docs.starpoint.ai/"""
 MISSING_COLUMN = "Missing column name expected for insertion."
 
+
 class PandasClient(object):
     def __init__(
         self,
@@ -19,7 +20,12 @@ class PandasClient(object):
     ):
         self.starpoint = starpoint
 
-    def insert_by_dataframe(self, dataframe: pd.DataFrame, collection_id: Optional[str]=None, collection_name: Optional[str]=None) -> Dict[Any, Any]:
+    def insert_by_dataframe(
+        self,
+        dataframe: pd.DataFrame,
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
         if len(dataframe.columns) > 2:
             LOGGER.warning(TOO_MANY_COLUMN_WARNING)
         elif len(dataframe.columns) < 2:
@@ -39,10 +45,25 @@ class PandasClient(object):
         # TODO: check values using df to make sure values aren't totally bogus
         metadata_column_values = metadata_column.values.tolist()
 
-        self.starpoint.column_insert(embeddings=embedding_column_values, document_metadatas=metadata_column_values, collection_id=collection_id, collection_name=collection_name)
+        self.starpoint.column_insert(
+            embeddings=embedding_column_values,
+            document_metadatas=metadata_column_values,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
 
-    def update_by_dataframe(self, dataframe: pd.DataFrame, collection_id: Optional[str]=None, collection_name: Optional[str]=None) -> Dict[Any, Any]:
+    def update_by_dataframe(
+        self,
+        dataframe: pd.DataFrame,
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
         ...
 
-    def delete_by_dataframe(self, dataframe: pd.DataFrame, collection_id: Optional[str]=None, collection_name: Optional[str]=None) -> Dict[Any, Any]:
+    def delete_by_dataframe(
+        self,
+        dataframe: pd.DataFrame,
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
         ...
