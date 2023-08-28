@@ -212,6 +212,7 @@ class Writer(object):
             collection_name=collection_name,
         )
 
+    # TODO: add column update
     def update(
         self,
         documents: List[Dict[Any, Any]],
