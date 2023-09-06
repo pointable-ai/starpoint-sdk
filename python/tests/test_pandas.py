@@ -33,7 +33,7 @@ def test_insert_by_dataframe_too_many_columns(monkeypatch: MonkeyPatch):
     mock_startpoint_client.column_insert.assert_called_once()
 
 
-def test_insert_by_dataframe_no_embedding_column():
+def test_insert_by_dataframe_missing_embedding_column():
     mock_startpoint_client = MagicMock()
     pandas_client = pandas.PandasClient(mock_startpoint_client)
 
@@ -46,7 +46,7 @@ def test_insert_by_dataframe_no_embedding_column():
         pandas_client.insert_by_dataframe(missing_embedding_column_dataframe)
 
 
-def test_insert_by_dataframe_no_metadata_column():
+def test_insert_by_dataframe_missing_metadata_column():
     mock_startpoint_client = MagicMock()
     pandas_client = pandas.PandasClient(mock_startpoint_client)
 
@@ -68,18 +68,3 @@ def test_insert_by_dataframe_too_few_columns(dataframe_columns):
 
     with pytest.raises(ValueError, match=pandas.TOO_FEW_COLUMN_ERROR):
         pandas_client.insert_by_dataframe(too_few_column_dataframe)
-
-
-def test_insert_by_dataframe_identifier_collide():
-    mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
-
-
-def test_insert_by_dataframe_missing_embeddings_column():
-    mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
-
-
-def test_insert_by_dataframe_missing_metadata_column():
-    mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
