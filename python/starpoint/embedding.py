@@ -38,7 +38,7 @@ class EmbeddingClient(object):
         self,
         text: List[str],
         model: EmbeddingModel,
-    ) -> List[List[float]]:
+    ) -> Dict[List[Dict]]:
         """Takes some text and creates an embedding against a model in starpoint.
 
         Args:
@@ -46,18 +46,13 @@ class EmbeddingClient(object):
             model: A choice of
 
         Returns:
-            list: Multiple lists of embeddings, matching the number of requested strings to
+            dict: Result with multiple lists of embeddings, matching the number of requested strings to
                 create embeddings from.
 
         Raises:
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
-        try:
-            request_data = dict(text=text, model=model.value)
-        except AttributeError as e:
-            e.add_note('Model "{e}" is not a supported a EmbeddingModel.')
-            raise
-
+        request_data = dict(text=text, model=model.value)
         try:
             response = requests.post(
                 url=f"{self.host}{EMBED_PATH}",
