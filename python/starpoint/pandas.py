@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 import pandas as pd
 
-from starpoint import db, _utils
+from starpoint import db
 
 LOGGER = logging.getLogger(__name__)
 
