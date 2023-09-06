@@ -1,8 +1,9 @@
 import logging
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
-from starpoint import db
+from starpoint import db, _utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ class PandasClient(object):
             LOGGER.warning(TOO_MANY_COLUMN_WARNING)
         elif len(dataframe.columns) < 2:
             raise ValueError(TOO_FEW_COLUMN_ERROR)
+
+        _utils._check_collection_identifier_collision(collection_id, collection_name)
 
         try:
             embedding_column = dataframe["embedding"]
