@@ -38,7 +38,7 @@ class EmbeddingClient(object):
         self,
         text: List[str],
         model: EmbeddingModel,
-    ) -> Dict[List[Dict]]:
+    ) -> Dict[str, List[Dict]]:
         """Takes some text and creates an embedding against a model in starpoint.
 
         Args:
