@@ -32,19 +32,21 @@ class PandasClient(object):
         elif len(dataframe.columns) < 2:
             raise ValueError(TOO_FEW_COLUMN_ERROR)
 
-        _utils._check_collection_identifier_collision(collection_id, collection_name)
-
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
-            raise KeyError(MISSING_COLUMN) from e
+            e.add_note(MISSING_COLUMN)
+            e.add_note('Missing column: "embedding"')
+            raise
         # TODO: check values using df to make sure values aren't totally bogus
         embedding_column_values = embedding_column.values.tolist()
 
         try:
             metadata_column = dataframe["metadata"]
         except KeyError as e:
-            raise KeyError(MISSING_COLUMN) from e
+            e.add_note(MISSING_COLUMN)
+            e.add_note('Missing column: "metadata"')
+            raise
         # TODO: check values using df to make sure values aren't totally bogus
         metadata_column_values = metadata_column.values.tolist()
 
