@@ -1,6 +1,6 @@
 import logging
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -27,6 +27,16 @@ def _check_column_length(dataframe: pd.DataFrame):
         raise ValueError(TOO_FEW_COLUMN_ERROR)
 
 
+def _get_column_value_from_dataframe(dataframe: pd.DataFrame, column_name: str) -> List:
+    try:
+        column = dataframe[column_name]
+    except KeyError as e:
+        e.add_note(MISSING_COLUMN.substitute(column_name=column_name))
+        raise
+    # TODO: check values using df to make sure values aren't totally bogus
+    return column.values.tolist()
+
+
 class PandasClient(object):
     def __init__(
         self,
@@ -41,22 +51,14 @@ class PandasClient(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
-        try:
-            embedding_column = dataframe["embedding"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        embedding_column_values = embedding_column.values.tolist()
-
-        try:
-            metadata_column = dataframe["metadata"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        metadata_column_values = metadata_column.values.tolist()
-
+        embedding_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "embedding",
+        )
+        metadata_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "metadata",
+        )
         self.starpoint.column_insert(
             embeddings=embedding_column_values,
             document_metadatas=metadata_column_values,
@@ -71,21 +73,14 @@ class PandasClient(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
-        try:
-            embedding_column = dataframe["embedding"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        embedding_column_values = embedding_column.values.tolist()
-
-        try:
-            metadata_column = dataframe["metadata"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        metadata_column_values = metadata_column.values.tolist()
+        embedding_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "embedding",
+        )
+        metadata_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "metadata",
+        )
 
         self.starpoint.column_update(
             embeddings=embedding_column_values,
@@ -101,21 +96,14 @@ class PandasClient(object):
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
-        try:
-            embedding_column = dataframe["embedding"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        embedding_column_values = embedding_column.values.tolist()
-
-        try:
-            metadata_column = dataframe["metadata"]
-        except KeyError as e:
-            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
-            raise
-        # TODO: check values using df to make sure values aren't totally bogus
-        metadata_column_values = metadata_column.values.tolist()
+        embedding_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "embedding",
+        )
+        metadata_column_values = _get_column_value_from_dataframe(
+            dataframe,
+            "metadata",
+        )
 
         self.starpoint.column_delete(
             embeddings=embedding_column_values,
