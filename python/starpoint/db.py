@@ -56,6 +56,42 @@ class Client(object):
             collection_name=collection_name,
         )
 
+    def column_delete(
+        self,
+        embeddings: List[List[float]],
+        document_metadatas: List[Dict[Any, Any]],
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        """Deletes documents from an existing collection by embedding and document metadata arrays.
+        The arrays are zipped together and updates the document in the order of the two arrays.
+        `column_delete()` method from [`Writer`](#writer-objects).
+
+        Args:
+            embeddings: A list of embeddings.
+                Order of the embeddings should match the document_metadatas.
+            document_metadatas: A list of metadata to be associated with embeddings.
+                Order of these metadatas should match the embeddings.
+            collection_id: The collection's id where the documents will be deleted.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be deleted.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: delete response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
+        return self.writer.column_delete(
+            embeddings=embeddings,
+            document_metadatas=document_metadatas,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
+
     def insert(
         self,
         documents: List[Dict[Any, Any]],
@@ -211,6 +247,42 @@ class Client(object):
         """
         return self.writer.update(
             documents=documents,
+            collection_id=collection_id,
+            collection_name=collection_name,
+        )
+
+    def column_update(
+        self,
+        embeddings: List[List[float]],
+        document_metadatas: List[Dict[Any, Any]],
+        collection_id: Optional[str] = None,
+        collection_name: Optional[str] = None,
+    ) -> Dict[Any, Any]:
+        """Updates documents for an existing collection by embedding and document metadata arrays.
+        The arrays are zipped together and updates the document in the order of the two arrays.
+        `column_update()` method from [`Writer`](#writer-objects).
+
+        Args:
+            embeddings: A list of embeddings.
+                Order of the embeddings should match the document_metadatas.
+            document_metadatas: A list of metadata to be associated with embeddings.
+                Order of these metadatas should match the embeddings.
+            collection_id: The collection's id where the documents will be updated.
+                This or the `collection_name` needs to be provided.
+            collection_name: The collection's name where the documents will be updated.
+                This or the `collection_id` needs to be provided.
+
+        Returns:
+            dict: update response json
+
+        Raises:
+            ValueError: If neither collection id and collection name are provided.
+            ValueError: If both collection id and collection name are provided.
+            requests.exceptions.SSLError: Failure likely due to network issues.
+        """
+        return self.writer.column_update(
+            embeddings=embeddings,
+            document_metadatas=document_metadatas,
             collection_id=collection_id,
             collection_name=collection_name,
         )
