@@ -1,4 +1,5 @@
 import logging
+from string import Template
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -11,7 +12,9 @@ TOO_MANY_COLUMN_WARNING = "More than 2 columns given in dataframe. Only columns 
 TOO_FEW_COLUMN_ERROR = """Not enough columns in dataframe provided. Please make sure to provide a
 column for both embeddings and metadata. For examples of what this should look like visit:
 https://docs.starpoint.ai/"""
-MISSING_COLUMN = "Missing column name expected for insertion."
+MISSING_COLUMN = Template(
+    'Missing column name "$column_name" expected for starpoint write operations.'
+)
 
 
 def _check_column_length(dataframe: pd.DataFrame):
@@ -41,8 +44,7 @@ class PandasClient(object):
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "embedding"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         embedding_column_values = embedding_column.values.tolist()
@@ -50,8 +52,7 @@ class PandasClient(object):
         try:
             metadata_column = dataframe["metadata"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "metadata"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         metadata_column_values = metadata_column.values.tolist()
@@ -73,8 +74,7 @@ class PandasClient(object):
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "embedding"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         embedding_column_values = embedding_column.values.tolist()
@@ -82,8 +82,7 @@ class PandasClient(object):
         try:
             metadata_column = dataframe["metadata"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "metadata"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         metadata_column_values = metadata_column.values.tolist()
@@ -105,8 +104,7 @@ class PandasClient(object):
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "embedding"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="embedding"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         embedding_column_values = embedding_column.values.tolist()
@@ -114,8 +112,7 @@ class PandasClient(object):
         try:
             metadata_column = dataframe["metadata"]
         except KeyError as e:
-            e.add_note(MISSING_COLUMN)
-            e.add_note('Missing column: "metadata"')
+            e.add_note(MISSING_COLUMN.substitute(column_name="metadata"))
             raise
         # TODO: check values using df to make sure values aren't totally bogus
         metadata_column_values = metadata_column.values.tolist()

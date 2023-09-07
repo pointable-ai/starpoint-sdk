@@ -42,8 +42,13 @@ def test_insert_by_dataframe_missing_embedding_column():
         columns=["metadata", "extra"],
     )
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as excinfo:
         pandas_client.insert_by_dataframe(missing_embedding_column_dataframe)
+
+    assert (
+        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        in excinfo.value.__notes__
+    )
 
 
 def test_insert_by_dataframe_missing_metadata_column():
@@ -55,8 +60,13 @@ def test_insert_by_dataframe_missing_metadata_column():
         columns=["embedding", "extra"],
     )
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as excinfo:
         pandas_client.insert_by_dataframe(missing_metadata_column_dataframe)
+
+    assert (
+        pandas.MISSING_COLUMN.substitute(column_name="metadata")
+        in excinfo.value.__notes__
+    )
 
 
 @pytest.mark.parametrize("dataframe_columns", [[], [[1]], [[1], [2]]])
