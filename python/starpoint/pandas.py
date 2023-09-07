@@ -14,6 +14,16 @@ https://docs.starpoint.ai/"""
 MISSING_COLUMN = "Missing column name expected for insertion."
 
 
+def _check_column_length(dataframe: pd.DataFrame):
+    """Checks that, by length, we satisfy basic requirements for a starpoint write operation.
+    For any starpoint write operations, we need the embeddings and metadata to perform the op.
+    """
+    if len(dataframe.columns) > 2:
+        LOGGER.warning(TOO_MANY_COLUMN_WARNING)
+    elif len(dataframe.columns) < 2:
+        raise ValueError(TOO_FEW_COLUMN_ERROR)
+
+
 class PandasClient(object):
     def __init__(
         self,
@@ -27,11 +37,7 @@ class PandasClient(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        if len(dataframe.columns) > 2:
-            LOGGER.warning(TOO_MANY_COLUMN_WARNING)
-        elif len(dataframe.columns) < 2:
-            raise ValueError(TOO_FEW_COLUMN_ERROR)
-
+        _check_column_length(dataframe)
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
@@ -63,11 +69,7 @@ class PandasClient(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        if len(dataframe.columns) > 2:
-            LOGGER.warning(TOO_MANY_COLUMN_WARNING)
-        elif len(dataframe.columns) < 2:
-            raise ValueError(TOO_FEW_COLUMN_ERROR)
-
+        _check_column_length(dataframe)
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
@@ -99,11 +101,7 @@ class PandasClient(object):
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> Dict[Any, Any]:
-        if len(dataframe.columns) > 2:
-            LOGGER.warning(TOO_MANY_COLUMN_WARNING)
-        elif len(dataframe.columns) < 2:
-            raise ValueError(TOO_FEW_COLUMN_ERROR)
-
+        _check_column_length(dataframe)
         try:
             embedding_column = dataframe["embedding"]
         except KeyError as e:
