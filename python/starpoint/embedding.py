@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -9,7 +10,6 @@ from starpoint._utils import (
     _check_collection_identifier_collision,
     _validate_host,
 )
-from starpoint.enums import EmbeddingModel
 
 
 LOGGER = logging.getLogger(__name__)
@@ -22,6 +22,11 @@ EMBED_PATH = "/api/v1/embed"
 
 # Error and warning messages
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
+
+
+class EmbeddingModel(Enum):
+    MINI6 = "MINI6"
+    MINI12 = "MINI12"
 
 
 class EmbeddingClient(object):

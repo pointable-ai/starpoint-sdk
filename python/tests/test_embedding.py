@@ -6,7 +6,6 @@ from _pytest.monkeypatch import MonkeyPatch
 from requests.exceptions import SSLError
 
 from starpoint import embedding
-from starpoint.enums import EmbeddingModel
 
 
 @pytest.fixture(scope="session")
@@ -56,7 +55,7 @@ def test_embedding_embed_not_200(
     logger_mock = MagicMock()
     monkeypatch.setattr(embedding, "LOGGER", logger_mock)
 
-    actual_json = mock_embedding_client.embed(["asdf"], EmbeddingModel.MINI6)
+    actual_json = mock_embedding_client.embed(["asdf"], embedding.EmbeddingModel.MINI6)
 
     requests_mock.post.assert_called()
     logger_mock.error.assert_called_once()
@@ -76,6 +75,6 @@ def test_embedding_embed_SSLError(
     monkeypatch.setattr(embedding, "LOGGER", logger_mock)
 
     with pytest.raises(SSLError, match="mock exception"):
-        mock_embedding_client.embed(["asdf"], EmbeddingModel.MINI6)
+        mock_embedding_client.embed(["asdf"], embedding.EmbeddingModel.MINI6)
 
     logger_mock.error.assert_called_once_with(embedding.SSL_ERROR_MSG)
