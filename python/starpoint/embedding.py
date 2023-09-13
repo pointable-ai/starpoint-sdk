@@ -25,8 +25,7 @@ SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid 
 
 
 class EmbeddingModel(Enum):
-    MINI6 = "MINI6"
-    MINI12 = "MINI12"
+    MINILM = "MiniLm"
 
 
 class EmbeddingClient(object):
