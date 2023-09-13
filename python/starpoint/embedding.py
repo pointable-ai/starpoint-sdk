@@ -81,6 +81,7 @@ class EmbeddingClient(object):
         Raises:
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
+        # TODO: add len + logging here
         text_embedding_items = [
             {
                 "text": text,
