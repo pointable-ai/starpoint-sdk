@@ -78,3 +78,64 @@ def test_embedding_embed_SSLError(
         mock_embedding_client.embed(["asdf"], embedding.EmbeddingModel.MINILM)
 
     logger_mock.error.assert_called_once_with(embedding.SSL_ERROR_MSG)
+
+
+@patch("starpoint.embedding.EmbeddingClient.embed_items")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed(
+    requests_mock: MagicMock,
+    embed_items_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_text = "asdf"
+    input_model = embedding.EmbeddingModel.MINILM
+    expected_item = [{"text": input_text, "metadata": None}]
+
+    actual_json = mock_embedding_client.embed([input_text], input_model)
+
+    embed_items_mock.assert_called_once_with(
+        text_embedding_items=expected_item, model=input_model
+    )
+
+
+@patch("starpoint.embedding.EmbeddingClient.embed_items")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata(
+    requests_mock: MagicMock,
+    embed_items_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_text = "asdf"
+    input_metadata = {"label": "asdf"}
+    input_model = embedding.EmbeddingModel.MINILM
+    expected_item = [{"text": input_text, "metadata": input_metadata}]
+
+    actual_json = mock_embedding_client.embed_and_join_metadata(
+        [input_text], [input_metadata], input_model
+    )
+
+    embed_items_mock.assert_called_once_with(
+        text_embedding_items=expected_item, model=input_model
+    )
+
+
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_items(
+    requests_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+    monkeypatch: MonkeyPatch,
+):
+    requests_mock.post().ok = True
+    test_value = {"mock_return": "value"}
+    requests_mock.post().json.return_value = test_value
+
+    expected_json = {}
+
+    actual_json = mock_embedding_client.embed_items(
+        [{"text": "asdf", "metadata": {"label": "asdf"}}],
+        embedding.EmbeddingModel.MINILM,
+    )
+
+    requests_mock.post.assert_called()
+    requests_mock.post().json.assert_called()
+    assert actual_json == test_value
