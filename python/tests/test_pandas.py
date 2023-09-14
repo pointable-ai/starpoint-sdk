@@ -15,6 +15,38 @@ def test__check_column_lenth_too_few_columns():
         pandas._check_column_length(too_few_column_dataframe)
 
 
+def test__get_aggregate_column_values_from_dataframe_exclude_partial():
+    test_dataframe = pd.DataFrame([[1, 2], [3, 4]], columns=["include", "exclude"])
+
+    expected_list = [{"include": 1}, {"include": 3}]
+
+    actual_list = pandas._get_aggregate_column_values_from_dataframe(
+        test_dataframe, ["exclude"]
+    )
+
+    assert actual_list == expected_list
+
+
+def test__get_aggregate_column_values_from_dataframe_exclude_all():
+    test_dataframe = pd.DataFrame([[1, 2], [3, 4]], columns=["exclude1", "exclude2"])
+
+    actual_list = pandas._get_aggregate_column_values_from_dataframe(
+        test_dataframe, ["exclude1", "exclude2"]
+    )
+
+    assert actual_list == []
+
+
+@pytest.mark.parametrize("exclude_columns", [["random col"], ["exclude", "random col"]])
+def test__get_aggregate_column_values_from_dataframe_exclude_unrelated(exclude_columns):
+    test_dataframe = pd.DataFrame([[1, 2], [3, 4]], columns=["include", "exclude"])
+
+    with pytest.raises(ValueError):
+        pandas._get_aggregate_column_values_from_dataframe(
+            test_dataframe, exclude_columns
+        )
+
+
 def test_init_pandas_client():
     mock_startpoint_client = MagicMock()
     pandas_client = pandas.PandasClient(mock_startpoint_client)

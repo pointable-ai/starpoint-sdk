@@ -28,7 +28,7 @@ def _check_column_length(dataframe: pd.DataFrame):
 
 def _get_aggregate_column_values_from_dataframe(
     dataframe: pd.DataFrame, exclude_column_names: List[str]
-) -> List:
+) -> List[Dict]:
     """Gets a dataframe of everything except for the "embedding" column then produce
     a list of row-wise dicts that will be loaded as the metadata. For example:
 
