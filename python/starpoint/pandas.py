@@ -67,16 +67,17 @@ class PandasClient(object):
         dataframe: pd.DataFrame,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
+        embedding_column_name: str = EMBEDDING_COLUMN_NAME,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
         embedding_column_values = _get_column_value_from_dataframe(
             dataframe,
-            EMBEDDING_COLUMN_NAME,
+            embedding_column_name,
         )
 
         metadata_column_values = _get_aggregate_column_values_from_dataframe(
             dataframe,
-            [EMBEDDING_COLUMN_NAME],
+            [embedding_column_name],
         )
 
         self.starpoint.column_insert(
@@ -91,16 +92,17 @@ class PandasClient(object):
         dataframe: pd.DataFrame,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
+        embedding_column_name: str = EMBEDDING_COLUMN_NAME,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
         embedding_column_values = _get_column_value_from_dataframe(
             dataframe,
-            EMBEDDING_COLUMN_NAME,
+            embedding_column_name,
         )
 
         metadata_column_values = _get_aggregate_column_values_from_dataframe(
             dataframe,
-            [EMBEDDING_COLUMN_NAME],
+            [embedding_column_name],
         )
 
         self.starpoint.column_update(
@@ -115,16 +117,17 @@ class PandasClient(object):
         dataframe: pd.DataFrame,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
+        embedding_column_name: str = EMBEDDING_COLUMN_NAME,
     ) -> Dict[Any, Any]:
         _check_column_length(dataframe)
         embedding_column_values = _get_column_value_from_dataframe(
             dataframe,
-            EMBEDDING_COLUMN_NAME,
+            embedding_column_name,
         )
 
         metadata_column_values = _get_aggregate_column_values_from_dataframe(
             dataframe,
-            [EMBEDDING_COLUMN_NAME],
+            [embedding_column_name],
         )
 
         self.starpoint.column_delete(
