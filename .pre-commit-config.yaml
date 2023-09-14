@@ -9,6 +9,6 @@ repos:
     hooks:
     -   id: black
 -   repo: https://github.com/rhysd/actionlint
-    rev: main
+    rev: v1.6.25
     hooks:
     -   id: actionlint
