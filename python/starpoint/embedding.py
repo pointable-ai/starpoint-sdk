@@ -87,7 +87,6 @@ class EmbeddingClient(object):
         Raises:
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
-        # TODO: add len + logging here
         if len(texts) != len(metadatas):
             LOGGER.warning(TEXT_METADATA_LENGTH_MISMATCH_WARNING)
 
