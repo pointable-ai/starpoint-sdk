@@ -22,6 +22,11 @@ EMBED_PATH = "/api/v1/embed"
 
 # Error and warning messages
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
+TEXT_METADATA_LENGTH_MISMATCH_WARNING = (
+    "The length of the texts and metadatas provided are different. There may be a mismatch "
+    "between texts and the metadatas length; this may cause undesired results between the joining of "
+    "embeddings and metadatas."
+)
 
 
 class EmbeddingModel(Enum):
@@ -44,8 +49,8 @@ class EmbeddingClient(object):
         model: EmbeddingModel,
     ) -> Dict[str, List[Dict]]:
         """Takes some texts creates embeddings using a model in starpoint. This is a
-        version of embed_and_join_metadata where joining metadata with the result is
-        not necessary. The same API is used between the two methods.
+        version of `embed_and_join_metadata_by_column` where joining metadata with the result is
+        not necessary. The same API is used for the two methods.
 
         Args:
             texts: List of strings to create embeddings from.
@@ -60,14 +65,15 @@ class EmbeddingClient(object):
         text_embedding_items = [{"text": text, "metadata": None} for text in texts]
         return self.embed_items(text_embedding_items=text_embedding_items, model=model)
 
-    def embed_and_join_metadata(
+    def embed_and_join_metadata_by_columns(
         self,
         texts: List[str],
         metadatas: List[Dict],
         model: EmbeddingModel,
     ) -> Dict[str, List[Dict]]:
-        """Takes some texts and creates embeddings using a model in starpoint. Metadata is joined with
-        the results for ergonomics. Under the hood this is using embed_items.
+        """Takes some texts and creates embeddings using a model in starpoint. Prefer using `embed_items`
+        instead, as mismatched `texts` and `metadatas` will output undesirable results.
+        Under the hood this is using `embed_items`.
 
         Args:
             texts: List of strings to create embeddings from.
@@ -82,6 +88,9 @@ class EmbeddingClient(object):
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
         # TODO: add len + logging here
+        if len(texts) != len(metadatas):
+            LOGGER.warning(TEXT_METADATA_LENGTH_MISMATCH_WARNING)
+
         text_embedding_items = [
             {
                 "text": text,

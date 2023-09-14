@@ -100,7 +100,7 @@ def test_embedding_embed(
 
 @patch("starpoint.embedding.EmbeddingClient.embed_items")
 @patch("starpoint.embedding.requests")
-def test_embedding_embed_and_join_metadata(
+def test_embedding_embed_and_join_metadata_by_columns(
     requests_mock: MagicMock,
     embed_items_mock: MagicMock,
     mock_embedding_client: embedding.EmbeddingClient,
@@ -110,7 +110,7 @@ def test_embedding_embed_and_join_metadata(
     input_model = embedding.EmbeddingModel.MINILM
     expected_item = [{"text": input_text, "metadata": input_metadata}]
 
-    actual_json = mock_embedding_client.embed_and_join_metadata(
+    actual_json = mock_embedding_client.embed_and_join_metadata_by_columns(
         [input_text], [input_metadata], input_model
     )
 
