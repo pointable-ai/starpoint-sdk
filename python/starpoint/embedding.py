@@ -87,6 +87,11 @@ class EmbeddingClient(object):
         Raises:
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
+        if not isinstance(texts, list):
+            raise ValueError("texts passed was not of type list")
+        if not isinstance(metadatas, list):
+            raise ValueError("metadatas passed was not of type list")
+
         if len(texts) != len(metadatas):
             LOGGER.warning(TEXT_METADATA_LENGTH_MISMATCH_WARNING)
 

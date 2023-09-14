@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
@@ -119,11 +120,79 @@ def test_embedding_embed_and_join_metadata_by_columns(
     )
 
 
+@patch("starpoint.embedding.EmbeddingClient.embed_items")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata_by_columns_non_list_texts(
+    requests_mock: MagicMock,
+    embed_items_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_metadata = {"label": "asdf"}
+    input_model = embedding.EmbeddingModel.MINILM
+
+    with pytest.raises(ValueError):
+        mock_embedding_client.embed_and_join_metadata_by_columns(
+            "not_list_texts", [input_metadata], input_model
+        )
+
+
+@patch("starpoint.embedding.EmbeddingClient.embed_items")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata_by_columns_non_list_metadatas(
+    requests_mock: MagicMock,
+    embed_items_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_text = "asdf"
+    input_model = embedding.EmbeddingModel.MINILM
+
+    with pytest.raises(ValueError):
+        mock_embedding_client.embed_and_join_metadata_by_columns(
+            [input_text], {"label": "not_list_metadatas"}, input_model
+        )
+
+
+@pytest.mark.parametrize(
+    "input_text,input_metadata",
+    [
+        [
+            ["embed_text1", "embed_text2"],
+            [{"label": "label1"}],
+        ],
+        [
+            ["embed_text1"],
+            [{"label": "label1"}, {"label": "label2"}],
+        ],
+    ],
+)
+@patch("starpoint.embedding.EmbeddingClient.embed_items")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata_by_columns_mismatch_list(
+    requests_mock: MagicMock,
+    embed_items_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+    input_text: List,
+    input_metadata: List,
+    monkeypatch: MonkeyPatch,
+):
+    input_model = embedding.EmbeddingModel.MINILM
+
+    logger_mock = MagicMock()
+    monkeypatch.setattr(embedding, "LOGGER", logger_mock)
+
+    actual_json = mock_embedding_client.embed_and_join_metadata_by_columns(
+        input_text, input_metadata, input_model
+    )
+
+    logger_mock.warning.assert_called_once_with(
+        embedding.TEXT_METADATA_LENGTH_MISMATCH_WARNING
+    )
+
+
 @patch("starpoint.embedding.requests")
 def test_embedding_embed_items(
     requests_mock: MagicMock,
     mock_embedding_client: embedding.EmbeddingClient,
-    monkeypatch: MonkeyPatch,
 ):
     requests_mock.post().ok = True
     test_value = {"mock_return": "value"}
