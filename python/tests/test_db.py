@@ -32,6 +32,17 @@ def test_client_delete(mock_writer: MagicMock, mock_reader: MagicMock):
 
 @patch("starpoint.reader.Reader")
 @patch("starpoint.writer.Writer")
+def test_client_column_delete(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.column_delete(embeddings=[1.1], document_metadatas={"mock": "value"})
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_writer().column_delete.assert_called_once()
+
+
+@patch("starpoint.reader.Reader")
+@patch("starpoint.writer.Writer")
 def test_client_insert(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
@@ -83,3 +94,14 @@ def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
 
     mock_reader.assert_called_once()  # Only called during init
     mock_writer().update.assert_called_once()
+
+
+@patch("starpoint.reader.Reader")
+@patch("starpoint.writer.Writer")
+def test_client_column_update(mock_writer: MagicMock, mock_reader: MagicMock):
+    client = db.Client(api_key=uuid4())
+
+    client.column_update(embeddings=[1.1], document_metadatas={"mock": "value"})
+
+    mock_reader.assert_called_once()  # Only called during init
+    mock_writer().column_update.assert_called_once()
