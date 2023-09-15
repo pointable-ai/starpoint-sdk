@@ -44,7 +44,7 @@ class Reader(object):
         collection_name: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
-        text_search_query: Optional[str] = None,
+        text_search_query: Optional[List[str]] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
 
