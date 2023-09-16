@@ -127,12 +127,11 @@ class EmbeddingClient(object):
         Raises:
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
+        if not text_embedding_items:
+            raise ValueError("text_embedding_items received an empty list.")
+
         texts = list(map(lambda item: item.get(embedding_key), text_embedding_items))
-        if not texts:
-            raise ValueError(
-                "text_embedding_items received an empty list of list of empty items."
-            )
-        elif not all(texts):
+        if not all(texts):
             unqualified_indices = list(
                 more_itertools.locate(texts, lambda x: x is None)
             )
@@ -143,12 +142,10 @@ class EmbeddingClient(object):
 
         # We can also do this operation in the first map that creates texts, but that might make additional operations
         # in here a lot more annoying. It's an optimization that shouldn't happen right now.
-        metadatas = list(
-            map(lambda item: item.pop(embedding_key), text_embedding_items)
-        )
+        list(map(lambda item: item.pop(embedding_key), text_embedding_items))
 
         return self.embed_and_join_metadata_by_columns(
-            texts=text_embedding_items, metadatas=metadatas, model=model
+            texts=texts, metadatas=text_embedding_items, model=model
         )
 
     def embed_items(

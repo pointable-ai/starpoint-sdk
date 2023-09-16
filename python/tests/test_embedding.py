@@ -189,6 +189,74 @@ def test_embedding_embed_and_join_metadata_by_columns_mismatch_list(
     )
 
 
+@patch("starpoint.embedding.EmbeddingClient.embed_and_join_metadata_by_columns")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata(
+    requests_mock: MagicMock,
+    embed_and_join_metadata_by_columns_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_text = "embed text"
+    input_metadata = {
+        "metadata1": "metadata1",
+        "metadata2": "metadata2",
+    }
+    embed_key = "text"
+    input_dict = {embed_key: input_text}
+    input_dict.update(input_metadata)
+    test_embedding_items = [input_dict]
+
+    expected_item = [{"text": input_text, "metadata": input_metadata}]
+    input_model = embedding.EmbeddingModel.MINILM
+
+    actual_json = mock_embedding_client.embed_and_join_metadata(
+        test_embedding_items, embed_key, input_model
+    )
+
+    embed_and_join_metadata_by_columns_mock.assert_called_once_with(
+        texts=[input_text], metadatas=[input_metadata], model=input_model
+    )
+
+
+@patch("starpoint.embedding.EmbeddingClient.embed_and_join_metadata_by_columns")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata_no_embed_key(
+    requests_mock: MagicMock,
+    embed_and_join_metadata_by_columns_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_text = "embed text"
+    input_metadata = {
+        "metadata1": "metadata1",
+        "metadata2": "metadata2",
+    }
+    input_dict = {"text": input_text}
+    input_dict.update(input_metadata)
+    test_embedding_items = [input_dict]
+
+    input_model = embedding.EmbeddingModel.MINILM
+    embed_key = "no key"
+
+    with pytest.raises(ValueError):
+        actual_json = mock_embedding_client.embed_and_join_metadata(
+            test_embedding_items, embed_key, input_model
+        )
+
+
+@patch("starpoint.embedding.EmbeddingClient.embed_and_join_metadata_by_columns")
+@patch("starpoint.embedding.requests")
+def test_embedding_embed_and_join_metadata_no_values(
+    requests_mock: MagicMock,
+    embed_and_join_metadata_by_columns_mock: MagicMock,
+    mock_embedding_client: embedding.EmbeddingClient,
+):
+    input_model = embedding.EmbeddingModel.MINILM
+    with pytest.raises(ValueError):
+        actual_json = mock_embedding_client.embed_and_join_metadata(
+            [], "text", input_model
+        )
+
+
 @patch("starpoint.embedding.requests")
 def test_embedding_embed_items(
     requests_mock: MagicMock,
