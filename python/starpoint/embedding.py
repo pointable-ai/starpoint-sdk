@@ -141,6 +141,8 @@ class EmbeddingClient(object):
             )
 
         # TODO: Figure out if we should do a deep copy here instead of editing the original dict
+        # We can also do this operation in the first map, but that might make additional operations we might consider
+        # doing in here a lot more annoying. Feels like an optimization that shouldn't happen right now.
         metadatas = list(
             map(lambda item: item.pop(embedding_key), text_embedding_items)
         )
