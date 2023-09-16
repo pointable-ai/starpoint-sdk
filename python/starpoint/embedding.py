@@ -72,8 +72,8 @@ class EmbeddingClient(object):
         metadatas: List[Dict],
         model: EmbeddingModel,
     ) -> Dict[str, List[Dict]]:
-        """Takes some texts and creates embeddings using a model in starpoint. Prefer using `embed_items`
-        instead, as mismatched `texts` and `metadatas` will output undesirable results.
+        """Takes some texts and creates embeddings using a model in starpoint. Prefer using `embed_and_join_metadata` or
+        `embed_items` instead, as mismatched `texts` and `metadatas` will output undesirable results.
         Under the hood this is using `embed_items`.
 
         Args:
@@ -111,13 +111,14 @@ class EmbeddingClient(object):
         embedding_key: Hashable,
         model: EmbeddingModel,
     ) -> Dict[str, List[Dict]]:
-        """Takes some texts and creates embeddings using a model in starpoint. Prefer using `embed_items`
-        instead, as mismatched `texts` and `metadatas` will output undesirable results.
-        Under the hood this is using `embed_items`.
+        """Takes some texts and creates embeddings using a model in starpoint, and joins them to
+        all additional data as metadata. Under the hood this is using `embed_and_join_metadata_by_columns`
+        which is using `embed_items`.
 
         Args:
             text_embedding_items: List of dicts of data to create embeddings from.
-            embedding_key: the key in the embedding items to use to generate the embeddings against
+            embedding_key: the key in each item used to create embeddings from.
+                e.g. `"context"` would be passed if each item looks like this: `{"context": "embed this text"}`
             model: An enum choice from EmbeddingModel.
 
         Returns:
@@ -140,9 +141,8 @@ class EmbeddingClient(object):
                 f"{embedding_key}:\n {unqualified_indices}"
             )
 
-        # TODO: Figure out if we should do a deep copy here instead of editing the original dict
-        # We can also do this operation in the first map, but that might make additional operations we might consider
-        # doing in here a lot more annoying. Feels like an optimization that shouldn't happen right now.
+        # We can also do this operation in the first map that creates texts, but that might make additional operations
+        # in here a lot more annoying. It's an optimization that shouldn't happen right now.
         metadatas = list(
             map(lambda item: item.pop(embedding_key), text_embedding_items)
         )
