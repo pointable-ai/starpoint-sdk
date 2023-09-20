@@ -16,7 +16,7 @@ jobs:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     defaults:
       run:
-        working-directory: ./python
+        working-directory: ./starpoint
     steps:
       - uses: actions/checkout@v3
         with:
@@ -36,4 +36,4 @@ jobs:
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: ./python/dist/
+          packages-dir: ./starpoint/dist/
