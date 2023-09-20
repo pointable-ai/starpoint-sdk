@@ -192,7 +192,7 @@ class Client(object):
             collection_name=collection_name,
             query_embedding=query_embedding,
             params=params,
-            text_search_query=text_search_query
+            text_search_query=text_search_query,
         )
 
     def infer_schema(
