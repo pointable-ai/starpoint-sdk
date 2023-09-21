@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from starpoint_pandas import pandas
+from starpoint_pandas import starpoint_pandas
 
 
 def test__check_column_lenth_too_few_columns():
     too_few_column_dataframe = pd.DataFrame([])
 
-    with pytest.raises(ValueError, match=pandas.TOO_FEW_COLUMN_ERROR):
-        pandas._check_column_length(too_few_column_dataframe)
+    with pytest.raises(ValueError, match=starpoint_pandas.TOO_FEW_COLUMN_ERROR):
+        starpoint_pandas._check_column_length(too_few_column_dataframe)
 
 
 def test__get_aggregate_column_values_from_dataframe_exclude_partial():
@@ -20,7 +20,7 @@ def test__get_aggregate_column_values_from_dataframe_exclude_partial():
 
     expected_list = [{"include": 1}, {"include": 3}]
 
-    actual_list = pandas._get_aggregate_column_values_from_dataframe(
+    actual_list = starpoint_pandas._get_aggregate_column_values_from_dataframe(
         test_dataframe, ["exclude"]
     )
 
@@ -30,7 +30,7 @@ def test__get_aggregate_column_values_from_dataframe_exclude_partial():
 def test__get_aggregate_column_values_from_dataframe_exclude_all():
     test_dataframe = pd.DataFrame([[1, 2], [3, 4]], columns=["exclude1", "exclude2"])
 
-    actual_list = pandas._get_aggregate_column_values_from_dataframe(
+    actual_list = starpoint_pandas._get_aggregate_column_values_from_dataframe(
         test_dataframe, ["exclude1", "exclude2"]
     )
 
@@ -42,23 +42,23 @@ def test__get_aggregate_column_values_from_dataframe_exclude_unrelated(exclude_c
     test_dataframe = pd.DataFrame([[1, 2], [3, 4]], columns=["include", "exclude"])
 
     with pytest.raises(ValueError):
-        pandas._get_aggregate_column_values_from_dataframe(
+        starpoint_pandas._get_aggregate_column_values_from_dataframe(
             test_dataframe, exclude_columns
         )
 
 
 def test_init_pandas_client():
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     assert pandas_client.starpoint == mock_startpoint_client
 
 
-@patch("starpoint.pandas._check_column_length")
+@patch("starpoint.starpoint_pandas._check_column_length")
 def test_insert_by_dataframe_success(check_column_mock: MagicMock):
     """Tests a successful insertion operation."""
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -78,7 +78,7 @@ def test_insert_by_dataframe_success(check_column_mock: MagicMock):
 
 def test_insert_by_dataframe_missing_embedding_column():
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     missing_embedding_column_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -89,16 +89,16 @@ def test_insert_by_dataframe_missing_embedding_column():
         pandas_client.insert_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        starpoint_pandas.MISSING_COLUMN.substitute(column_name="embedding")
         in excinfo.value.__notes__
     )
 
 
-@patch("starpoint.pandas._check_column_length")
+@patch("starpoint.starpoint_pandas._check_column_length")
 def test_update_by_dataframe_success(check_column_mock: MagicMock):
     """Tests a successful update operation."""
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -118,7 +118,7 @@ def test_update_by_dataframe_success(check_column_mock: MagicMock):
 
 def test_update_by_dataframe_missing_embedding_column():
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     missing_embedding_column_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -129,16 +129,16 @@ def test_update_by_dataframe_missing_embedding_column():
         pandas_client.update_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        starpoint_pandas.MISSING_COLUMN.substitute(column_name="embedding")
         in excinfo.value.__notes__
     )
 
 
-@patch("starpoint.pandas._check_column_length")
+@patch("starpoint.starpoint_pandas._check_column_length")
 def test_delete_by_dataframe_success(check_column_mock: MagicMock):
     """Tests a successful delete operation."""
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -158,7 +158,7 @@ def test_delete_by_dataframe_success(check_column_mock: MagicMock):
 
 def test_delete_by_dataframe_missing_embedding_column():
     mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
+    pandas_client = starpoint_pandas.PandasClient(mock_startpoint_client)
 
     missing_embedding_column_dataframe = pd.DataFrame(
         [[1, 2]],
@@ -169,6 +169,6 @@ def test_delete_by_dataframe_missing_embedding_column():
         pandas_client.delete_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        starpoint_pandas.MISSING_COLUMN.substitute(column_name="embedding")
         in excinfo.value.__notes__
     )
