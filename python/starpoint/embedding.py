@@ -31,7 +31,7 @@ TEXT_METADATA_LENGTH_MISMATCH_WARNING = (
 
 
 class EmbeddingModel(Enum):
-    MINILM = "MiniLm"
+    MINILM = "MINI_LM"
 
 
 class EmbeddingClient(object):
