@@ -47,7 +47,7 @@ class EmbeddingClient(object):
     def embed(
         self,
         texts: List[str],
-        model: EmbeddingModel,
+        model: EmbeddingModel = EmbeddingModel.MINILM,
     ) -> Dict[str, List[Dict]]:
         """Takes some texts creates embeddings using a model in starpoint. This is a
         version of `embed_and_join_metadata_by_column` where joining metadata with the result is
@@ -70,7 +70,7 @@ class EmbeddingClient(object):
         self,
         texts: List[str],
         metadatas: List[Dict],
-        model: EmbeddingModel,
+        model: EmbeddingModel = EmbeddingModel.MINILM,
     ) -> Dict[str, List[Dict]]:
         """Takes some texts and creates embeddings using a model in starpoint. Prefer using `embed_and_join_metadata` or
         `embed_items` instead, as mismatched `texts` and `metadatas` will output undesirable results.
@@ -109,7 +109,7 @@ class EmbeddingClient(object):
         self,
         text_embedding_items: List[Dict],
         embedding_key: Hashable,
-        model: EmbeddingModel,
+        model: EmbeddingModel = EmbeddingModel.MINILM,
     ) -> Dict[str, List[Dict]]:
         """Takes some texts and creates embeddings using a model in starpoint, and joins them to
         all additional data as metadata. Under the hood this is using `embed_and_join_metadata_by_columns`
@@ -151,7 +151,7 @@ class EmbeddingClient(object):
     def embed_items(
         self,
         text_embedding_items: List[Dict],
-        model: EmbeddingModel,
+        model: EmbeddingModel = EmbeddingModel.MINILM,
     ) -> Dict[str, List[Dict]]:
         """Takes items with text and metadata, and embeds the text using a model in starpoint. Metadata is joined with
         the results for ergonomics.
