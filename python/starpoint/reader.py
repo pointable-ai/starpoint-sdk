@@ -45,6 +45,7 @@ class Reader(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
+        text_search_weight: Optional[float] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
 
@@ -56,6 +57,7 @@ class Reader(object):
                 This or the `collection_id` needs to be provided.
             query_embedding: An embedding to query against the collection using similarity search.
             params: values for parameterized sql
+            text_search_weight: weight for text search
 
         Returns:
             dict: query response json
@@ -85,6 +87,7 @@ class Reader(object):
             sql=sql,
             params=params,
             text_search_query=text_search_query,
+            text_search_weight=text_search_weight,
         )
         try:
             response = requests.post(
