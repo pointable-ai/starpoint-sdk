@@ -27,7 +27,7 @@ SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid 
 
 
 class TokenizerType(Enum):
-    LLAMA2 = ("llama2",)
+    LLAMA2 = "llama2"
     ENSTEM = "en_stem"
 
 
