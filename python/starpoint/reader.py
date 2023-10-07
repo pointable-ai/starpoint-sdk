@@ -65,6 +65,7 @@ class Reader(object):
             query_embedding: An embedding to query against the collection using similarity search.
             params: values for parameterized sql
             text_search_weight: weight for text search
+            tokenizer_type: the type of tokenizer used to perform full text search
 
         Returns:
             dict: query response json
