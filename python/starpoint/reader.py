@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 from uuid import UUID
+from enum import Enum
 
 import requests
 
@@ -25,6 +26,11 @@ QUERY_PATH = "/api/v1/query"
 SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid API key. Please check if your API is correct and still valid."
 
 
+class TokenizerType(Enum):
+    LLAMA2 = "llama2"
+    ENSTEM = "en_stem"
+
+
 class Reader(object):
     """Client for the Reader endpoints. If you do not need to separate reading or
     writing for, consider using the [`Client` object](#client-objects).
@@ -45,6 +51,8 @@ class Reader(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
+        text_search_weight: Optional[float] = None,
+        tokenizer_type: Optional[TokenizerType] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
 
@@ -56,6 +64,8 @@ class Reader(object):
                 This or the `collection_id` needs to be provided.
             query_embedding: An embedding to query against the collection using similarity search.
             params: values for parameterized sql
+            text_search_weight: weight for text search
+            tokenizer_type: the type of tokenizer used to perform full text search
 
         Returns:
             dict: query response json
@@ -85,6 +95,8 @@ class Reader(object):
             sql=sql,
             params=params,
             text_search_query=text_search_query,
+            text_search_weight=text_search_weight,
+            tokenizer_type=tokenizer_type,
         )
         try:
             response = requests.post(
