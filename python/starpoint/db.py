@@ -165,6 +165,8 @@ class Client(object):
         query_embedding: Optional[List[float]] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
+        text_search_weight: Optional[float] = None,
+        tokenizer_type: Optional[reader.TokenizerType] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
         `query()` method from [`Reader`](#reader-objects).
@@ -192,7 +194,9 @@ class Client(object):
             collection_name=collection_name,
             query_embedding=query_embedding,
             params=params,
-            text_search_query=text_search_query
+            text_search_query=text_search_query,
+            text_search_weight=text_search_weight,
+            tokenizer_type=tokenizer_type,
         )
 
     def infer_schema(
