@@ -311,7 +311,7 @@ class Writer(object):
 
         documents = [
             {
-                "embedding": embedding,
+                "embeddings": embedding,
                 "metadata": document_metadata,
             }
             for embedding, document_metadata in zip(embeddings, document_metadatas)
