@@ -192,7 +192,7 @@ class Client(object):
             sql=sql,
             collection_id=collection_id,
             collection_name=collection_name,
-            query_embedding=query_embedding,
+            query_embeddings=query_embedding,
             params=params,
             text_search_query=text_search_query,
             text_search_weight=text_search_weight,
