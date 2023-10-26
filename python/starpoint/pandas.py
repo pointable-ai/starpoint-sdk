@@ -112,27 +112,3 @@ class PandasClient(object):
             collection_name=collection_name,
         )
 
-    def delete_by_dataframe(
-        self,
-        dataframe: pd.DataFrame,
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-        embedding_column_name: str = EMBEDDING_COLUMN_NAME,
-    ) -> Dict[Any, Any]:
-        _check_column_length(dataframe)
-        embedding_column_values = _get_column_value_from_dataframe(
-            dataframe,
-            embedding_column_name,
-        )
-
-        metadata_column_values = _get_aggregate_column_values_from_dataframe(
-            dataframe,
-            [embedding_column_name],
-        )
-
-        self.starpoint.column_delete(
-            embeddings=embedding_column_values,
-            document_metadatas=metadata_column_values,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
