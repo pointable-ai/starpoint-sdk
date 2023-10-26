@@ -114,7 +114,7 @@ class OpenAIClient(object):
         # Return the embedding response no matter what issues/bugs we might run into in the sdk
         try:
             sorted_embedding_data = sorted(embedding_data, key=lambda x: x["index"])
-            embeddings = map(lambda x: x.get("embedding"), sorted_embedding_data)
+            embeddings = map(lambda x: x.get("embeddings"), sorted_embedding_data)
             starpoint_response = self.starpoint.column_insert(
                 embeddings=embeddings,
                 document_metadatas=document_metadatas,

@@ -8,6 +8,7 @@ import requests
 import validators
 
 from starpoint import reader, writer, _utils
+from starpoint.embedding import Embedding
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,42 +57,6 @@ class Client(object):
             collection_name=collection_name,
         )
 
-    def column_delete(
-        self,
-        embeddings: List[List[float]],
-        document_metadatas: List[Dict[Any, Any]],
-        collection_id: Optional[str] = None,
-        collection_name: Optional[str] = None,
-    ) -> Dict[Any, Any]:
-        """Deletes documents from an existing collection by embedding and document metadata arrays.
-        The arrays are zipped together and updates the document in the order of the two arrays.
-        `column_delete()` method from [`Writer`](#writer-objects).
-
-        Args:
-            embeddings: A list of embeddings.
-                Order of the embeddings should match the document_metadatas.
-            document_metadatas: A list of metadata to be associated with embeddings.
-                Order of these metadatas should match the embeddings.
-            collection_id: The collection's id where the documents will be deleted.
-                This or the `collection_name` needs to be provided.
-            collection_name: The collection's name where the documents will be deleted.
-                This or the `collection_id` needs to be provided.
-
-        Returns:
-            dict: delete response json
-
-        Raises:
-            ValueError: If neither collection id and collection name are provided.
-            ValueError: If both collection id and collection name are provided.
-            requests.exceptions.SSLError: Failure likely due to network issues.
-        """
-        return self.writer.column_delete(
-            embeddings=embeddings,
-            document_metadatas=document_metadatas,
-            collection_id=collection_id,
-            collection_name=collection_name,
-        )
-
     def insert(
         self,
         documents: List[Dict[Any, Any]],
@@ -123,7 +88,7 @@ class Client(object):
 
     def column_insert(
         self,
-        embeddings: List[List[float]],
+        embeddings: List[Embedding],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
@@ -162,7 +127,7 @@ class Client(object):
         sql: Optional[str] = None,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
-        query_embedding: Optional[List[float]] = None,
+        query_embedding: Optional[List[float] | Embedding] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
@@ -188,11 +153,18 @@ class Client(object):
             ValueError: If both collection id and collection name are provided.
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
+
+        # check if query embedding is a float, if it is, convert to a embedding object
+        if isinstance(query_embedding, list):
+            query_embedding = Embedding(
+                vectors=query_embedding,
+                dim=len(query_embedding))
+
         return self.reader.query(
             sql=sql,
             collection_id=collection_id,
             collection_name=collection_name,
-            query_embedding=query_embedding,
+            query_embeddings=query_embedding,
             params=params,
             text_search_query=text_search_query,
             text_search_weight=text_search_weight,
@@ -259,7 +231,7 @@ class Client(object):
 
     def column_update(
         self,
-        embeddings: List[List[float]],
+        embeddings: List[Embedding],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,

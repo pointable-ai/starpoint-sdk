@@ -80,7 +80,7 @@ def test_client_build_and_insert_embeddings_input_string_success(
     expected_embedding_response = {
         "data": [
             {
-                "embedding": mock_embedding,
+                "embeddings": mock_embedding,
                 "index": 0,
             }
         ]
@@ -128,11 +128,11 @@ def test_client_build_and_insert_embeddings_input_list_success(
     expected_embedding_response = {
         "data": [
             {
-                "embedding": 0.77,
+                "embeddings": 0.77,
                 "index": 0,
             },
             {
-                "embedding": 0.88,
+                "embeddings": 0.88,
                 "index": 1,
             },
         ]
@@ -224,7 +224,7 @@ def test_client_build_and_insert_embeddings_exception_during_write(
     expected_embedding_response = {
         "data": [
             {
-                "embedding": 0.77,
+                "embeddings": 0.77,
                 "index": 0,
             }
         ]

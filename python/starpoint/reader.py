@@ -11,6 +11,7 @@ from starpoint._utils import (
     _validate_host,
 )
 
+from starpoint.embedding import Embedding
 
 LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ class Reader(object):
         sql: Optional[str] = None,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
-        query_embedding: Optional[List[float]] = None,
+        query_embeddings: Optional[Embedding] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
@@ -91,7 +92,7 @@ class Reader(object):
         request_data = dict(
             collection_id=collection_id,
             collection_name=collection_name,
-            query_embedding=query_embedding,
+            query_embeddings=query_embeddings,
             sql=sql,
             params=params,
             text_search_query=text_search_query,

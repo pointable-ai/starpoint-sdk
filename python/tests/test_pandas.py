@@ -62,7 +62,7 @@ def test_insert_by_dataframe_success(check_column_mock: MagicMock):
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
-        columns=["embedding", "metadata"],
+        columns=["embeddings", "metadata"],
     )
 
     pandas_client.insert_by_dataframe(test_dataframe)
@@ -89,7 +89,7 @@ def test_insert_by_dataframe_missing_embedding_column():
         pandas_client.insert_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        pandas.MISSING_COLUMN.substitute(column_name="embeddings")
         in excinfo.value.__notes__
     )
 
@@ -102,7 +102,7 @@ def test_update_by_dataframe_success(check_column_mock: MagicMock):
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
-        columns=["embedding", "metadata"],
+        columns=["embeddings", "metadata"],
     )
 
     pandas_client.update_by_dataframe(test_dataframe)
@@ -129,46 +129,6 @@ def test_update_by_dataframe_missing_embedding_column():
         pandas_client.update_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
-        in excinfo.value.__notes__
-    )
-
-
-@patch("starpoint.pandas._check_column_length")
-def test_delete_by_dataframe_success(check_column_mock: MagicMock):
-    """Tests a successful delete operation."""
-    mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
-
-    test_dataframe = pd.DataFrame(
-        [[1, 2]],
-        columns=["embedding", "metadata"],
-    )
-
-    pandas_client.delete_by_dataframe(test_dataframe)
-
-    check_column_mock.assert_called_once_with(test_dataframe)
-    mock_startpoint_client.column_delete.assert_called_once_with(
-        embeddings=[1],
-        document_metadatas=[{"metadata": 2}],
-        collection_id=None,
-        collection_name=None,
-    )
-
-
-def test_delete_by_dataframe_missing_embedding_column():
-    mock_startpoint_client = MagicMock()
-    pandas_client = pandas.PandasClient(mock_startpoint_client)
-
-    missing_embedding_column_dataframe = pd.DataFrame(
-        [[1, 2]],
-        columns=["metadata", "extra"],
-    )
-
-    with pytest.raises(KeyError) as excinfo:
-        pandas_client.delete_by_dataframe(missing_embedding_column_dataframe)
-
-    assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        pandas.MISSING_COLUMN.substitute(column_name="embeddings")
         in excinfo.value.__notes__
     )
