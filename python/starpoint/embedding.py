@@ -31,12 +31,12 @@ TEXT_METADATA_LENGTH_MISMATCH_WARNING = (
 
 
 class Embedding(object):
-    vectors: List[float]
-    dim: int
+    values: List[float]
+    dimensionality: int
 
-    def __init__(self, vectors: List[float], dim: Optional[int] = None):
-        self.vectors = vectors
-        self.dim = len(vectors) if dim is None else dim
+    def __init__(self, values: List[float], dimensionality: Optional[int] = None):
+        self.values = values
+        self.dimensionality = len(values) if dimensionality is None else dimensionality
 
 
 class EmbeddingModel(Enum):
