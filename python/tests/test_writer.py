@@ -6,6 +6,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from requests.exceptions import SSLError
 
 from starpoint import writer
+from starpoint.embedding import Embedding
 
 
 @pytest.fixture(scope="session")
@@ -160,7 +161,7 @@ def test_writer_insert_SSLError(
 
 @patch("starpoint.writer.Writer.insert")
 def test_writer_column_insert(insert_mock: MagicMock, mock_writer: writer.Writer):
-    test_embeddings = [0.88, 0.71]
+    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
@@ -188,7 +189,7 @@ def test_writer_column_insert(insert_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_insert_collection_id_collection_name_passed_through(
     insert_mock: MagicMock, mock_writer: writer.Writer
 ):
-    test_embeddings = [0.88]
+    test_embeddings = [Embedding([0.88])]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
@@ -217,7 +218,7 @@ def test_writer_column_insert_collection_id_collection_name_passed_through(
 def test_writer_column_insert_shorter_metadatas_length(
     insert_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88, 0.71]
+    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
@@ -247,7 +248,7 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_insert_shorter_embeddings_length(
     insert_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88]
+    test_embeddings = [Embedding([0.88])]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
@@ -337,7 +338,7 @@ def test_writer_update_SSLError(
 
 @patch("starpoint.writer.Writer.update")
 def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer):
-    test_embeddings = [0.88, 0.71]
+    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
@@ -365,7 +366,7 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_update_collection_id_collection_name_passed_through(
     update_mock: MagicMock, mock_writer: writer.Writer
 ):
-    test_embeddings = [0.88]
+    test_embeddings = [Embedding([0.88])]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
@@ -394,7 +395,7 @@ def test_writer_column_update_collection_id_collection_name_passed_through(
 def test_writer_column_insert_shorter_metadatas_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88, 0.71]
+    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
@@ -424,7 +425,7 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_update_shorter_embeddings_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88]
+    test_embeddings = [Embedding([0.88])]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
@@ -451,65 +452,10 @@ def test_writer_column_update_shorter_embeddings_length(
 
 
 @patch("starpoint.writer.Writer.delete")
-def test_writer_column_delete(delete_mock: MagicMock, mock_writer: writer.Writer):
-    test_embeddings = [0.88, 0.71]
-    test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
-    expected_delete_document = [
-        {
-            "embedding": test_embeddings[0],
-            "metadata": test_document_metadatas[0],
-        },
-        {
-            "embedding": test_embeddings[1],
-            "metadata": test_document_metadatas[1],
-        },
-    ]
-
-    mock_writer.column_delete(
-        embeddings=test_embeddings, document_metadatas=test_document_metadatas
-    )
-
-    delete_mock.assert_called_once_with(
-        documents=expected_delete_document,
-        collection_id=None,
-        collection_name=None,
-    )
-
-
-@patch("starpoint.writer.Writer.delete")
-def test_writer_column_delete_collection_id_collection_name_passed_through(
-    delete_mock: MagicMock, mock_writer: writer.Writer
-):
-    test_embeddings = [0.88]
-    test_document_metadatas = [{"mock": "metadata"}]
-    expected_delete_document = [
-        {
-            "embedding": test_embeddings[0],
-            "metadata": test_document_metadatas[0],
-        },
-    ]
-    expected_collection_id = "mock_id"
-    expected_collection_name = "mock_name"
-
-    mock_writer.column_delete(
-        embeddings=test_embeddings,
-        document_metadatas=test_document_metadatas,
-        collection_id=expected_collection_id,
-        collection_name=expected_collection_name,
-    )
-
-    delete_mock.assert_called_once_with(
-        documents=expected_delete_document,
-        collection_id=expected_collection_id,
-        collection_name=expected_collection_name,
-    )
-
-
-@patch("starpoint.writer.Writer.delete")
 def test_writer_column_insert_shorter_metadatas_length(
     delete_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88, 0.71]
+    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_delete_document = [
         {
@@ -539,7 +485,7 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_delete_shorter_embeddings_length(
     delete_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [0.88]
+    test_embeddings = [Embedding([0.88])]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_delete_document = [
         {

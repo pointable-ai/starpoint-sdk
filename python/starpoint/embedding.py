@@ -30,6 +30,15 @@ TEXT_METADATA_LENGTH_MISMATCH_WARNING = (
 )
 
 
+class Embedding(object):
+    vectors: List[float]
+    dim: int
+
+    def __init__(self, vectors: List[float], dim: Optional[int] = None):
+        self.vectors = vectors
+        self.dim = len(vectors) if dim is None else dim
+
+
 class EmbeddingModel(Enum):
     MINILM = "MINI_LM"
 
