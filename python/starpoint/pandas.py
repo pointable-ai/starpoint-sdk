@@ -8,7 +8,7 @@ from starpoint import db
 
 LOGGER = logging.getLogger(__name__)
 
-EMBEDDING_COLUMN_NAME = "embedding"
+EMBEDDING_COLUMN_NAME = "embeddings"
 
 TOO_FEW_COLUMN_ERROR = """Not enough columns in dataframe provided. Please make sure to provide a
 column for at least embeddings. For examples of what this should look like visit:
@@ -29,10 +29,10 @@ def _check_column_length(dataframe: pd.DataFrame):
 def _get_aggregate_column_values_from_dataframe(
     dataframe: pd.DataFrame, exclude_column_names: List[str]
 ) -> List[Dict]:
-    """Gets a dataframe of everything except for the "embedding" column then produce
+    """Gets a dataframe of everything except for the "embeddings" column then produce
     a list of row-wise dicts that will be loaded as the metadata. For example:
 
-    df = DataFrame([[1,2,3], [4,5,6]], columns=["embedding","b","c"]
+    df = DataFrame([[1,2,3], [4,5,6]], columns=["embeddings","b","c"]
     metadata_column_values will be [{'b': 2, 'c': 3}, {'b': 5, 'c': 6}]
     """
     if not all((True if name in dataframe else False for name in exclude_column_names)):

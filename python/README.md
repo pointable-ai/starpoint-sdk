@@ -15,7 +15,7 @@ client = Client(api_key="YOUR_API_KEY_HERE")
 
 documents = [
   {
-    "embedding": [0.1, 0.2, 0.3, 0.4, 0.5],
+    "embeddings": [0.1, 0.2, 0.3, 0.4, 0.5],
     "metadata": {
       "label1": "0",
       "label2": "1",
@@ -31,11 +31,13 @@ client.insert(documents=documents, collection_name="COLLECTION_NAME")
 ## Contributing
 
 Make sure you have installed dev requirements
+
 ```
 pip install -r dev-requirements.txt
 ```
 
 Unit tests should be passing. You can run them via
+
 ```
 pytest ./tests
 ```

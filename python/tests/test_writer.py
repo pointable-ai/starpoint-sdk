@@ -165,11 +165,11 @@ def test_writer_column_insert(insert_mock: MagicMock, mock_writer: writer.Writer
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
         {
-            "embedding": test_embeddings[1],
+            "embeddings": test_embeddings[1],
             "metadata": test_document_metadatas[1],
         },
     ]
@@ -193,7 +193,7 @@ def test_writer_column_insert_collection_id_collection_name_passed_through(
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]
@@ -222,7 +222,7 @@ def test_writer_column_insert_shorter_metadatas_length(
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]
@@ -252,7 +252,7 @@ def test_writer_column_insert_shorter_embeddings_length(
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]
@@ -342,11 +342,11 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
         {
-            "embedding": test_embeddings[1],
+            "embeddings": test_embeddings[1],
             "metadata": test_document_metadatas[1],
         },
     ]
@@ -370,7 +370,7 @@ def test_writer_column_update_collection_id_collection_name_passed_through(
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]
@@ -399,7 +399,7 @@ def test_writer_column_insert_shorter_metadatas_length(
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]
@@ -429,7 +429,7 @@ def test_writer_column_update_shorter_embeddings_length(
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
-            "embedding": test_embeddings[0],
+            "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
     ]

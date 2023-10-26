@@ -62,7 +62,7 @@ def test_insert_by_dataframe_success(check_column_mock: MagicMock):
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
-        columns=["embedding", "metadata"],
+        columns=["embeddings", "metadata"],
     )
 
     pandas_client.insert_by_dataframe(test_dataframe)
@@ -89,7 +89,7 @@ def test_insert_by_dataframe_missing_embedding_column():
         pandas_client.insert_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        pandas.MISSING_COLUMN.substitute(column_name="embeddings")
         in excinfo.value.__notes__
     )
 
@@ -102,7 +102,7 @@ def test_update_by_dataframe_success(check_column_mock: MagicMock):
 
     test_dataframe = pd.DataFrame(
         [[1, 2]],
-        columns=["embedding", "metadata"],
+        columns=["embeddings", "metadata"],
     )
 
     pandas_client.update_by_dataframe(test_dataframe)
@@ -129,6 +129,6 @@ def test_update_by_dataframe_missing_embedding_column():
         pandas_client.update_by_dataframe(missing_embedding_column_dataframe)
 
     assert (
-        pandas.MISSING_COLUMN.substitute(column_name="embedding")
+        pandas.MISSING_COLUMN.substitute(column_name="embeddings")
         in excinfo.value.__notes__
     )
