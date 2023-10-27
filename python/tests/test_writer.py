@@ -6,7 +6,6 @@ from _pytest.monkeypatch import MonkeyPatch
 from requests.exceptions import SSLError
 
 from starpoint import writer
-from starpoint.embedding import Embedding
 
 
 @pytest.fixture(scope="session")
@@ -161,7 +160,10 @@ def test_writer_insert_SSLError(
 
 @patch("starpoint.writer.Writer.insert")
 def test_writer_column_insert(insert_mock: MagicMock, mock_writer: writer.Writer):
-    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+            {"values": [0.71], "dimensionality": 1}
+        ]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
@@ -189,7 +191,10 @@ def test_writer_column_insert(insert_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_insert_collection_id_collection_name_passed_through(
     insert_mock: MagicMock, mock_writer: writer.Writer
 ):
-    test_embeddings = [Embedding([0.88])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+        ]
+
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
@@ -218,7 +223,10 @@ def test_writer_column_insert_collection_id_collection_name_passed_through(
 def test_writer_column_insert_shorter_metadatas_length(
     insert_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+            {"values": [0.71], "dimensionality": 1}
+        ]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_insert_document = [
         {
@@ -248,7 +256,9 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_insert_shorter_embeddings_length(
     insert_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [Embedding([0.88])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+        ]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_insert_document = [
         {
@@ -338,7 +348,10 @@ def test_writer_update_SSLError(
 
 @patch("starpoint.writer.Writer.update")
 def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer):
-    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+            {"values": [0.71], "dimensionality": 1}
+        ]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
@@ -366,7 +379,7 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_update_collection_id_collection_name_passed_through(
     update_mock: MagicMock, mock_writer: writer.Writer
 ):
-    test_embeddings = [Embedding([0.88])]
+    test_embeddings = [{"values": [0.88], "dimensionality": 1}]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
@@ -395,7 +408,10 @@ def test_writer_column_update_collection_id_collection_name_passed_through(
 def test_writer_column_insert_shorter_metadatas_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [Embedding([0.88]), Embedding([0.71])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+            {"values": [0.71], "dimensionality": 1}
+        ]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
@@ -425,7 +441,9 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_update_shorter_embeddings_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
-    test_embeddings = [Embedding([0.88])]
+    test_embeddings = [
+            {"values": [0.88], "dimensionality": 1},
+        ]
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
