@@ -10,7 +10,6 @@ from starpoint._utils import (
     _validate_host,
 )
 
-from starpoint.embedding import Embedding
 
 LOGGER = logging.getLogger(__name__)
 
@@ -171,7 +170,7 @@ class Writer(object):
 
     def column_insert(
         self,
-        embeddings: List[Embedding],
+        embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
@@ -282,7 +281,7 @@ class Writer(object):
 
     def column_update(
         self,
-        embeddings: List[Embedding],
+        embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,

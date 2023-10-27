@@ -9,9 +9,9 @@ from starpoint._utils import (
     _build_header,
     _check_collection_identifier_collision,
     _validate_host,
+    _ensure_embedding_dict
 )
 
-from starpoint.embedding import Embedding
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class Reader(object):
         sql: Optional[str] = None,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
-        query_embeddings: Optional[Embedding] = None,
+        query_embeddings: Optional[Dict[str, int | List[float]] | List[float]] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
@@ -89,10 +89,13 @@ class Reader(object):
         )
         """
 
+        # check if type of query embeddings is list of float, if so convert to a dict 
+        query_embeddings = _ensure_embedding_dict(query_embeddings)
+
         request_data = dict(
             collection_id=collection_id,
             collection_name=collection_name,
-            query_embeddings=query_embeddings,
+            query_embedding=query_embeddings,
             sql=sql,
             params=params,
             text_search_query=text_search_query,
