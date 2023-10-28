@@ -348,6 +348,7 @@ def test_writer_update_SSLError(
 
 @patch("starpoint.writer.Writer.update")
 def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer):
+    ids = ["a", "b"]
     test_embeddings = [
             {"values": [0.88], "dimensionality": 1},
             {"values": [0.71], "dimensionality": 1}
@@ -365,7 +366,7 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
     ]
 
     mock_writer.column_update(
-        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+        ids=ids, embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
     update_mock.assert_called_once_with(
@@ -379,6 +380,7 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_update_collection_id_collection_name_passed_through(
     update_mock: MagicMock, mock_writer: writer.Writer
 ):
+    ids = ["a", "b"]
     test_embeddings = [{"values": [0.88], "dimensionality": 1}]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
@@ -391,6 +393,7 @@ def test_writer_column_update_collection_id_collection_name_passed_through(
     expected_collection_name = "mock_name"
 
     mock_writer.column_update(
+        ids=ids,
         embeddings=test_embeddings,
         document_metadatas=test_document_metadatas,
         collection_id=expected_collection_id,
@@ -408,6 +411,7 @@ def test_writer_column_update_collection_id_collection_name_passed_through(
 def test_writer_column_insert_shorter_metadatas_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
+    ids = ["a", "b"]
     test_embeddings = [
             {"values": [0.88], "dimensionality": 1},
             {"values": [0.71], "dimensionality": 1}
@@ -424,7 +428,7 @@ def test_writer_column_insert_shorter_metadatas_length(
     monkeypatch.setattr(writer, "LOGGER", logger_mock)
 
     mock_writer.column_update(
-        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+        ids=ids, embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
     logger_mock.warning.assert_called_once_with(
@@ -441,6 +445,7 @@ def test_writer_column_insert_shorter_metadatas_length(
 def test_writer_column_update_shorter_embeddings_length(
     update_mock: MagicMock, mock_writer: writer.Writer, monkeypatch: MonkeyPatch
 ):
+    ids = ["a", "b"]
     test_embeddings = [
             {"values": [0.88], "dimensionality": 1},
         ]
@@ -456,7 +461,7 @@ def test_writer_column_update_shorter_embeddings_length(
     monkeypatch.setattr(writer, "LOGGER", logger_mock)
 
     mock_writer.column_update(
-        embeddings=test_embeddings, document_metadatas=test_document_metadatas
+        ids=ids, embeddings=test_embeddings, document_metadatas=test_document_metadatas
     )
 
     logger_mock.warning.assert_called_once_with(

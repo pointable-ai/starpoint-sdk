@@ -281,6 +281,7 @@ class Writer(object):
 
     def column_update(
         self,
+        ids: List[str],
         embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
@@ -307,15 +308,16 @@ class Writer(object):
             ValueError: If both collection id and collection name are provided.
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
-        if len(embeddings) != len(document_metadatas):
+        if len(embeddings) != len(document_metadatas) or len(embeddings) != len(ids):
             LOGGER.warning(EMBEDDING_METADATA_LENGTH_MISMATCH_WARNING)
 
         documents = [
             {
+                "id": id,
                 "embeddings": embedding,
                 "metadata": document_metadata,
             }
-            for embedding, document_metadata in zip(embeddings, document_metadatas)
+            for embedding, document_metadata, id in zip(embeddings, document_metadatas, ids)
         ]
 
         return self.update(

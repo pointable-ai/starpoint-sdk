@@ -225,6 +225,7 @@ class Client(object):
 
     def column_update(
         self,
+        ids: List[str],
         embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
@@ -253,6 +254,7 @@ class Client(object):
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
         return self.writer.column_update(
+            ids=ids,
             embeddings=embeddings,
             document_metadatas=document_metadatas,
             collection_id=collection_id,
