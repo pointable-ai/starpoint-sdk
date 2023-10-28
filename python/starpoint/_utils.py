@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from uuid import UUID
 
 import requests
@@ -102,3 +102,13 @@ def _check_collection_identifier_collision(
         raise ValueError(NO_COLLECTION_VALUE_ERROR)
     elif collection_id and collection_name:
         raise ValueError(MULTI_COLLECTION_VALUE_ERROR)
+
+
+def _ensure_embedding_dict(embeddings: List[float] | Dict[str, List[float] | int] | None):
+    if isinstance(embeddings, list):
+        dict_embeddings = {
+                "values": embeddings,
+                "dimensionality": len(embeddings)
+            }
+        return dict_embeddings
+    return embeddings

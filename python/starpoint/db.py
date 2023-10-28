@@ -8,7 +8,6 @@ import requests
 import validators
 
 from starpoint import reader, writer, _utils
-from starpoint.embedding import Embedding
 
 LOGGER = logging.getLogger(__name__)
 
@@ -88,7 +87,7 @@ class Client(object):
 
     def column_insert(
         self,
-        embeddings: List[Embedding],
+        embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
@@ -127,7 +126,7 @@ class Client(object):
         sql: Optional[str] = None,
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
-        query_embedding: Optional[List[float] | Embedding] = None,
+        query_embedding: Optional[List[float] | Dict[str, List[float] | int]] = None,
         params: Optional[List[Any]] = None,
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
@@ -143,6 +142,7 @@ class Client(object):
             collection_name: The collection's name where the query will happen.
                 This or the `collection_id` needs to be provided.
             query_embedding: An embedding to query against the collection using similarity search.
+                This is of the shape {"values": List[float], "dimensionality": int}
             params: values for parameterized sql
 
         Returns:
@@ -153,12 +153,6 @@ class Client(object):
             ValueError: If both collection id and collection name are provided.
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
-
-        # check if query embedding is a float, if it is, convert to a embedding object
-        if isinstance(query_embedding, list):
-            query_embedding = Embedding(
-                vectors=query_embedding,
-                dim=len(query_embedding))
 
         return self.reader.query(
             sql=sql,
@@ -231,7 +225,8 @@ class Client(object):
 
     def column_update(
         self,
-        embeddings: List[Embedding],
+        ids: List[str],
+        embeddings: List[Dict[str, List[float] | int]],
         document_metadatas: List[Dict[Any, Any]],
         collection_id: Optional[str] = None,
         collection_name: Optional[str] = None,
@@ -259,6 +254,7 @@ class Client(object):
             requests.exceptions.SSLError: Failure likely due to network issues.
         """
         return self.writer.column_update(
+            ids=ids,
             embeddings=embeddings,
             document_metadatas=document_metadatas,
             collection_id=collection_id,
