@@ -90,6 +90,6 @@ def test_client_update(mock_writer: MagicMock, mock_reader: MagicMock):
 def test_client_column_update(mock_writer: MagicMock, mock_reader: MagicMock):
     client = db.Client(api_key=uuid4())
 
-    client.column_update(embeddings=[{"values": [1.1], "dimensionality": 1}], document_metadatas=[{"mock": "value"}])
+    client.column_update(ids=["a"], embeddings=[{"values": [1.1], "dimensionality": 1}], document_metadatas=[{"mock": "value"}])
     mock_reader.assert_called_once()  # Only called during init
     mock_writer().column_update.assert_called_once()

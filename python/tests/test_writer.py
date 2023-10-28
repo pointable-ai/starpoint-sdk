@@ -356,10 +356,12 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
+            "id": "a",
             "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
         {
+            "id": "b",
             "embeddings": test_embeddings[1],
             "metadata": test_document_metadatas[1],
         },
@@ -380,11 +382,12 @@ def test_writer_column_update(update_mock: MagicMock, mock_writer: writer.Writer
 def test_writer_column_update_collection_id_collection_name_passed_through(
     update_mock: MagicMock, mock_writer: writer.Writer
 ):
-    ids = ["a", "b"]
+    ids = ["a"]
     test_embeddings = [{"values": [0.88], "dimensionality": 1}]
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
+            "id": "a",
             "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
@@ -419,6 +422,7 @@ def test_writer_column_insert_shorter_metadatas_length(
     test_document_metadatas = [{"mock": "metadata"}]
     expected_update_document = [
         {
+            "id": "a",
             "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
@@ -452,6 +456,7 @@ def test_writer_column_update_shorter_embeddings_length(
     test_document_metadatas = [{"mock": "metadata"}, {"mock2": "metadata2"}]
     expected_update_document = [
         {
+            "id": "a",
             "embeddings": test_embeddings[0],
             "metadata": test_document_metadatas[0],
         },
