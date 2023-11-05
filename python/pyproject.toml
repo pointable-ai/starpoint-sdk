@@ -19,7 +19,7 @@ dependencies = [
   "requests~=2.31",
   "validators~=0.21",
   "pandas~=2.0",
-  "more-itertools~=10.1",
+  "more-itertools>=8,<=10.1",
 ]
 
 [project.optional-dependencies]
