@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "starpoint"
-version = "0.6.0"
+version = "0.6.1"
 authors = [{ name = "pointable", email = "package-maintainers@pointable.ai" }]
 description = "SDK for Starpoint DB"
 readme = "README.md"
@@ -19,7 +19,7 @@ dependencies = [
   "requests~=2.31",
   "validators~=0.21",
   "pandas~=2.0",
-  "more-itertools~=10.1",
+  "more-itertools>=8,<=10.1",
 ]
 
 [project.optional-dependencies]
