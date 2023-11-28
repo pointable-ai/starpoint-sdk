@@ -9,7 +9,7 @@ from starpoint._utils import (
     _build_header,
     _check_collection_identifier_collision,
     _validate_host,
-    _ensure_embedding_dict
+    _ensure_embedding_dict,
 )
 
 
@@ -89,7 +89,7 @@ class Reader(object):
         )
         """
 
-        # check if type of query embeddings is list of float, if so convert to a dict 
+        # check if type of query embeddings is list of float, if so convert to a dict
         query_embeddings = _ensure_embedding_dict(query_embeddings)
 
         request_data = dict(

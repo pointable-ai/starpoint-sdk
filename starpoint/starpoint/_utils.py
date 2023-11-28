@@ -104,11 +104,10 @@ def _check_collection_identifier_collision(
         raise ValueError(MULTI_COLLECTION_VALUE_ERROR)
 
 
-def _ensure_embedding_dict(embeddings: List[float] | Dict[str, List[float] | int] | None):
+def _ensure_embedding_dict(
+    embeddings: List[float] | Dict[str, List[float] | int] | None
+):
     if isinstance(embeddings, list):
-        dict_embeddings = {
-                "values": embeddings,
-                "dimensionality": len(embeddings)
-            }
+        dict_embeddings = {"values": embeddings, "dimensionality": len(embeddings)}
         return dict_embeddings
     return embeddings
