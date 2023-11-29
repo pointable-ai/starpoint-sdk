@@ -13,9 +13,6 @@ jobs:
   test-python-sdk:
     name: Python SDK Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./starpoint
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
