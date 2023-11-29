@@ -111,4 +111,3 @@ class PandasClient(object):
             collection_id=collection_id,
             collection_name=collection_name,
         )
-

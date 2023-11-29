@@ -317,7 +317,9 @@ class Writer(object):
                 "embeddings": embedding,
                 "metadata": document_metadata,
             }
-            for embedding, document_metadata, id in zip(embeddings, document_metadatas, ids)
+            for embedding, document_metadata, id in zip(
+                embeddings, document_metadatas, ids
+            )
         ]
 
         return self.update(
