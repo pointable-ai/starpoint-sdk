@@ -131,6 +131,7 @@ class Client(object):
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
         tokenizer_type: Optional[reader.TokenizerType] = None,
+        top_k: Optional[int] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
         `query()` method from [`Reader`](#reader-objects).
@@ -144,6 +145,10 @@ class Client(object):
             query_embedding: An embedding to query against the collection using similarity search.
                 This is of the shape {"values": List[float], "dimensionality": int}
             params: values for parameterized sql
+            text_search_query: a list of strings to search for in the text column
+            text_search_weight: the weight to apply to the text search
+            tokenizer_type: the tokenizer to use for the text search
+            top_k: the number of results to return
 
         Returns:
             dict: query response json
@@ -163,6 +168,7 @@ class Client(object):
             text_search_query=text_search_query,
             text_search_weight=text_search_weight,
             tokenizer_type=tokenizer_type,
+            top_k=top_k,
         )
 
     def infer_schema(

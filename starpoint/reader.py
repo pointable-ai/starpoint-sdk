@@ -30,6 +30,7 @@ SSL_ERROR_MSG = "Request failed due to SSLError. Error is likely due to invalid 
 class TokenizerType(Enum):
     LLAMA2 = "llama2"
     ENSTEM = "en_stem"
+    NAIVE = "naive"
 
 
 class Reader(object):
@@ -54,6 +55,7 @@ class Reader(object):
         text_search_query: Optional[List[str]] = None,
         text_search_weight: Optional[float] = None,
         tokenizer_type: Optional[TokenizerType] = None,
+        top_k: Optional[int] = None,
     ) -> Dict[Any, Any]:
         """Queries a collection. This could be by sql or query embeddings.
 
@@ -67,6 +69,7 @@ class Reader(object):
             params: values for parameterized sql
             text_search_weight: weight for text search
             tokenizer_type: the type of tokenizer used to perform full text search
+            top_k: the number of results to return
 
         Returns:
             dict: query response json
@@ -101,6 +104,7 @@ class Reader(object):
             text_search_query=text_search_query,
             text_search_weight=text_search_weight,
             tokenizer_type=tokenizer_type,
+            top_k=top_k,
         )
         try:
             response = requests.post(
