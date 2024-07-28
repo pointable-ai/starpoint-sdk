@@ -1,13 +1,8 @@
 import logging
-from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-import openai
-import requests
-import validators
-
-from starpoint import reader, writer, _utils
+from starpoint import reader, writer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,9 +19,6 @@ class Client(object):
     ):
         self.writer = writer.Writer(api_key=api_key, host=writer_host)
         self.reader = reader.Reader(api_key=api_key, host=reader_host)
-
-        # Consider a wrapper around openai once this class gets bloated
-        self.openai = None
 
     def delete(
         self,
